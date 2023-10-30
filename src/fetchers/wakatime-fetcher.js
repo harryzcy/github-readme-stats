@@ -12,10 +12,14 @@ const fetchWakatimeStats = async ({ username, api_domain }) => {
     throw new MissingParamError(["username"]);
   }
 
+  if (api_domain.endsWith("/")) {
+    api_domain = api_domain.slice(0, -1);
+  }
+
   try {
     const { data } = await axios.get(
       `https://${
-        api_domain ? api_domain.replace(/\/$/gi, "") : "wakatime.com"
+        api_domain ?? "wakatime.com"
       }/api/v1/users/${username}/stats?is_including_today=true`,
     );
 
