@@ -3,7 +3,7 @@ on:
   pull_request_target:
     types: [opened, edited, reopened, synchronize]
     branches:
-      - master
+      - cloudflare
     paths:
       - "themes/index.js"
 
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [18.x]
+        node-version: [18.x, 20.x]
 
     steps:
       - uses: actions/checkout@v4
