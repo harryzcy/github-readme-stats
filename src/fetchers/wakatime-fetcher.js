@@ -12,6 +12,10 @@ const fetchWakatimeStats = async ({ username, api_domain }) => {
     throw new MissingParamError(["username"]);
   }
 
+  if (typeof api_domain !== "string") {
+    // avoid type confusion attack, since later on `slice` method also works on arrays
+    throw new TypeError("api_domain must be a string");
+  }
   if (api_domain.endsWith("/")) {
     api_domain = api_domain.slice(0, -1);
   }
