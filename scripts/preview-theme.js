@@ -336,7 +336,7 @@ const parseJSON = (json) => {
     let parsedJson = json.replace(/(,\s*})/g, "}");
 
     // Remove JS comments (if any).
-    parsedJson = parsedJson.replace(/\/\/[A-z\s]*\s/g, "");
+    parsedJson = parsedJson.replace(/\/\/[a-zA-Z\s]*\s/g, "");
 
     // Fix incorrect open bracket (if any).
     const splitJson = parsedJson
