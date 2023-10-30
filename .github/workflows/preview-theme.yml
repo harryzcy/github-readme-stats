@@ -30,15 +30,15 @@ jobs:
         node-version: [18.x]
 
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/checkout@v4
 
       - name: Setup Node
-        uses: actions/setup-node@8f152de45cc393bb48ce5d89d36b731f54556e65 # v4.0.0
+        uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
 
-      - uses: bahmutov/npm-install@2509f13e8485d88340a789a3f7ca11aaac47c9fc # v1.8.36
+      - uses: bahmutov/npm-install@v1
         with:
           useLockFile: false
 
