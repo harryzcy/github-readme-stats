@@ -351,7 +351,7 @@ const getCardColors = ({
  * @returns {boolean} true if message is safe
  */
 const isSafeText = (message) => {
-  return typeof message !== "string" || message.includes("<");
+  return typeof message !== "string" || !/<.*?>/.test(message);
 };
 
 // Script parameters.
