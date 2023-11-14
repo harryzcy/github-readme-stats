@@ -15,7 +15,7 @@ const fetchWakatimeStats = async ({
   if (!username) {
     throw new MissingParamError(["username"]);
   }
-  if (!/[a-zA-Z0-9]/.test(username)) {
+  if (typeof username !== "string" || !/[a-zA-Z0-9]/.test(username)) {
     throw new CustomError("username must be alphanumeric");
   }
 
