@@ -19,11 +19,11 @@ const fetchWakatimeStats = async ({ username, api_domain }) => {
     // default value
     api_domain = "wakatime.com";
   }
-  if (api_domain.endsWith("/")) {
-    api_domain = api_domain.slice(0, -1);
-  }
   if (api_domain.includes("?") || api_domain.includes("#")) {
     throw new CustomError("api_domain must not contain ? or #");
+  }
+  if (api_domain.endsWith("/")) {
+    api_domain = api_domain.slice(0, -1);
   }
 
   try {
