@@ -36,7 +36,6 @@ const fetchWakatimeStats = async ({
   const is_domain_allowed =
     allowed_domains === undefined ||
     allowed_domains.split(",").includes(api_domain);
-
   if (!is_domain_allowed) {
     throw new CustomError(
       `api_domain '${api_domain}' is not in allowed domain list.`,
