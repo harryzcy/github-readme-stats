@@ -33,7 +33,7 @@ const fetchWakatimeStats = async ({
     api_domain = api_domain.slice(0, -1);
   }
 
-  let is_domain_allowed;
+  let is_domain_allowed = false;
   if (allowed_domains === undefined) {
     is_domain_allowed = true;
   } else {
