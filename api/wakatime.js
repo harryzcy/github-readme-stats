@@ -48,14 +48,10 @@ export const handler = async (req, res, env) => {
   }
 
   try {
-    let allowed_domains;
-    if (env.ALLOWED_DOMAINS) {
-      allowed_domains = env.ALLOWED_DOMAINS.split(",");
-    }
     const stats = await fetchWakatimeStats({
       username,
       api_domain,
-      allowed_domains,
+      allowed_domains: env.ALLOWED_DOMAINS,
     });
 
     let cacheSeconds = clampValue(

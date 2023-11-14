@@ -4,7 +4,7 @@ import { CustomError, MissingParamError } from "../common/utils.js";
 /**
  * WakaTime data fetcher.
  *
- * @param {{username: string, api_domain: string, allowed_domains: Array<string> }} props Fetcher props.
+ * @param {{username: string, api_domain: string, allowed_domains: string }} props Fetcher props.
  * @returns {Promise<WakaTimeData>} WakaTime data response.
  */
 const fetchWakatimeStats = async ({
@@ -32,7 +32,8 @@ const fetchWakatimeStats = async ({
   if (api_domain.endsWith("/")) {
     api_domain = api_domain.slice(0, -1);
   }
-  if (allowed_domains && !allowed_domains.includes(api_domain)) {
+  const allowed_domain_list = allowed_domains?.split(",").map((d) => d.trim());
+  if (allowed_domains && !allowed_domain_list.includes(api_domain)) {
     throw new CustomError(
       `api_domain '${api_domain}' is not in allowed domain list.`,
     );
