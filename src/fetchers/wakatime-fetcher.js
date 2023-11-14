@@ -15,6 +15,9 @@ const fetchWakatimeStats = async ({
   if (!username) {
     throw new MissingParamError(["username"]);
   }
+  if (!/[a-zA-Z0-9]/.test(username)) {
+    throw new CustomError("username must be alphanumeric");
+  }
 
   if (api_domain && typeof api_domain !== "string") {
     // avoid type confusion attack, since later on `slice` method also works on arrays
