@@ -22,6 +22,9 @@ const fetchWakatimeStats = async ({ username, api_domain }) => {
   if (api_domain.endsWith("/")) {
     api_domain = api_domain.slice(0, -1);
   }
+  if (api_domain.includes("?") || api_domain.includes("#")) {
+    throw new CustomError("api_domain must not contain ? or #");
+  }
 
   try {
     const { data } = await axios.get(
