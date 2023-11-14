@@ -15,6 +15,9 @@ const fetchWakatimeStats = async ({
   if (!username) {
     throw new MissingParamError(["username"]);
   }
+  if (typeof username !== "string") {
+    throw new TypeError("username must be a string");
+  }
   if (
     username.includes("?") ||
     username.includes("#") ||
