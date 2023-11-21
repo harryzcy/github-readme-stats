@@ -58,7 +58,7 @@ export default {
     } else {
       return new Response("not found", { status: 404 });
     }
-    res.headers.set("Cache-Control", "max-age=600"); // 10 min
+    res.setHeader("Cache-Control", "max-age=600"); // 10 min
 
     return res.toResponse();
   },
