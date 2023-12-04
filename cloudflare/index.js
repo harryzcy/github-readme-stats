@@ -15,6 +15,32 @@ export default {
     const res = new ResponseAdapter();
 
     const { pathname } = new URL(request.url);
+    if (pathname === "/") {
+      return new Response(
+        `<!DOCTYPE html>
+          <head>
+            <title>GitHub Readme Stats</title>
+            <meta name="description" content="⚡ Dynamically generated stats for your github readmes" />
+          </head>
+          <body>
+            <h1>GitHub Readme Stats</h1>
+            <p>⚡ Dynamically generated stats for your github readmes</p>
+            <p>
+              <span style="visibility: hidden;">⚡ </span>
+              <span>Hosted on Cloudflare from permanent fork: </span>
+              <a href="https://github.com/harryzcy/github-readme-stats">harryzcy/github-readme-stats</a>
+            </p>
+          </body>
+        </html>`,
+        {
+          headers: {
+            "Content-Type": "text/html;charset=UTF-8",
+            "Cache-Control": "max-age=600", // 10 min
+          },
+        },
+      );
+    }
+
     if (pathname === "/api") {
       await indexHandler(req, res, env);
     } else if (pathname === "/api/gist") {
@@ -31,6 +57,11 @@ export default {
       await statusUpHandler(req, res, env);
     } else {
       return new Response("not found", { status: 404 });
+    }
+    if (pathname === "/api/status/up") {
+      res.setHeader("Cache-Control", "max-age=0"); // no cache
+    } else {
+      res.setHeader("Cache-Control", "max-age=600"); // 10 min
     }
 
     return res.toResponse();
