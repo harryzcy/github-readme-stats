@@ -357,7 +357,7 @@ const isSafeText = (message) => {
   if (message.length > 256) {
     return false;
   }
-  return !/<.*?>/.test(message);
+  return !/<(.|\n)*?>/.test(message);
 };
 
 // Script parameters.
