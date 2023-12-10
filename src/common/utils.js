@@ -4,7 +4,6 @@ import toEmoji from "emoji-name-map";
 import wrap from "word-wrap";
 import { themes } from "../../themes/index.js";
 import process from "node:process";
-import { type } from "node:os";
 
 const TRY_AGAIN_LATER = "Please try again later";
 
