@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - cloudflare
-  pull_request:
-    branches:
-      - cloudflare
 
 jobs:
   deploy:
