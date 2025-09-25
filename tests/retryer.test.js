@@ -26,7 +26,7 @@ const fetcherFailOnSecondTry = jest.fn((_vars, _token, _useFetch, retries) => {
 });
 
 const fetcherFailWithMessageBasedRateLimitErr = jest.fn(
-  (_vars, _token, retries) => {
+  (_vars, _token, _useFetch, retries) => {
     return new Promise((res) => {
       // faking rate limit
       if (retries < 1) {
@@ -62,7 +62,11 @@ describe("Test Retryer", () => {
   });
 
   it("retryer should return value and have 2 retries with message based rate limit error", async () => {
-    let res = await retryer(fetcherFailWithMessageBasedRateLimitErr, {});
+    let res = await retryer(
+      fetcherFailWithMessageBasedRateLimitErr,
+      {},
+      process.env,
+    );
 
     expect(fetcherFailWithMessageBasedRateLimitErr).toBeCalledTimes(2);
     expect(res).toStrictEqual({ data: "ok" });
