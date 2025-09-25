@@ -26,7 +26,7 @@ const fetcherFailOnSecondTry = jest.fn((_vars, _token, _useFetch, retries) => {
 });
 
 const fetcherFailWithMessageBasedRateLimitErr = jest.fn(
-  (_vars, _token, retries) => {
+  (_vars, _token, _useFetch, retries) => {
     return new Promise((res) => {
       // faking rate limit
       if (retries < 1) {
