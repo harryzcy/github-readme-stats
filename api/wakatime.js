@@ -11,7 +11,11 @@ import { whitelist } from "../src/common/envs.js";
 import { fetchWakatimeStats } from "../src/fetchers/wakatime.js";
 import { isLocaleAvailable } from "../src/translations.js";
 import process from "node:process";
-import { resolveCacheSeconds } from "../src/common/cache.js";
+import {
+  resolveCacheSeconds,
+  setCacheHeaders,
+  setErrorCacheHeaders,
+} from "../src/common/cache.js";
 
 export const handler = async (req, res, env) => {
   const {
@@ -77,19 +81,14 @@ export const handler = async (req, res, env) => {
       allowed_domains: env.ALLOWED_WAKATIME_DOMAINS,
     });
     const cacheSeconds = resolveCacheSeconds({
-      requested: cache_seconds,
+      requested: parseInt(cache_seconds, 10),
       def: CONSTANTS.CARD_CACHE_SECONDS,
       min: CONSTANTS.SIX_HOURS,
       max: CONSTANTS.TWO_DAY,
       env,
     });
 
-    res.setHeader(
-      "Cache-Control",
-      `max-age=${
-        cacheSeconds / 2
-      }, s-maxage=${cacheSeconds}, stale-while-revalidate=${CONSTANTS.ONE_DAY}`,
-    );
+    setCacheHeaders(res, cacheSeconds);
 
     return res.send(
       renderWakatimeCard(stats, {
@@ -115,12 +114,7 @@ export const handler = async (req, res, env) => {
       }),
     );
   } catch (err) {
-    res.setHeader(
-      "Cache-Control",
-      `max-age=${CONSTANTS.ERROR_CACHE_SECONDS / 2}, s-maxage=${
-        CONSTANTS.ERROR_CACHE_SECONDS
-      }, stale-while-revalidate=${CONSTANTS.ONE_DAY}`,
-    ); // Use lower cache period for errors.
+    setErrorCacheHeaders(res);
     return res.send(
       renderError(err.message, err.secondaryMessage, {
         title_color,

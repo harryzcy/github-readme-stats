@@ -2,7 +2,11 @@
 
 import { renderRepoCard } from "../src/cards/repo.js";
 import { blacklist } from "../src/common/blacklist.js";
-import { resolveCacheSeconds } from "../src/common/cache.js";
+import {
+  resolveCacheSeconds,
+  setCacheHeaders,
+  setErrorCacheHeaders,
+} from "../src/common/cache.js";
 import { whitelist } from "../src/common/envs.js";
 import { CONSTANTS, parseBoolean, renderError } from "../src/common/utils.js";
 import { fetchRepo } from "../src/fetchers/repo.js";
@@ -77,17 +81,14 @@ export const handler = async (req, res, env) => {
   try {
     const repoData = await fetchRepo(env, username, repo);
     const cacheSeconds = resolveCacheSeconds({
-      requested: cache_seconds,
+      requested: parseInt(cache_seconds, 10),
       def: CONSTANTS.PIN_CARD_CACHE_SECONDS,
       min: CONSTANTS.ONE_DAY,
       max: CONSTANTS.TEN_DAY,
       env,
     });
 
-    res.setHeader(
-      "Cache-Control",
-      `max-age=${cacheSeconds}, s-maxage=${cacheSeconds}`,
-    );
+    setCacheHeaders(res, cacheSeconds);
 
     return res.send(
       renderRepoCard(repoData, {
@@ -105,12 +106,7 @@ export const handler = async (req, res, env) => {
       }),
     );
   } catch (err) {
-    res.setHeader(
-      "Cache-Control",
-      `max-age=${CONSTANTS.ERROR_CACHE_SECONDS / 2}, s-maxage=${
-        CONSTANTS.ERROR_CACHE_SECONDS
-      }, stale-while-revalidate=${CONSTANTS.ONE_DAY}`,
-    ); // Use lower cache period for errors.
+    setErrorCacheHeaders(res);
     return res.send(
       renderError(err.message, err.secondaryMessage, {
         title_color,
