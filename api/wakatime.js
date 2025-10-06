@@ -2,7 +2,6 @@
 
 import { renderWakatimeCard } from "../src/cards/wakatime.js";
 import {
-  clampValue,
   CONSTANTS,
   parseArray,
   parseBoolean,
@@ -12,6 +11,7 @@ import { whitelist } from "../src/common/envs.js";
 import { fetchWakatimeStats } from "../src/fetchers/wakatime.js";
 import { isLocaleAvailable } from "../src/translations.js";
 import process from "node:process";
+import { resolveCacheSeconds } from "../src/common/cache.js";
 
 export const handler = async (req, res, env) => {
   const {
@@ -76,15 +76,13 @@ export const handler = async (req, res, env) => {
       api_domain,
       allowed_domains: env.ALLOWED_WAKATIME_DOMAINS,
     });
-
-    let cacheSeconds = clampValue(
-      parseInt(cache_seconds || CONSTANTS.CARD_CACHE_SECONDS, 10),
-      CONSTANTS.SIX_HOURS,
-      CONSTANTS.TWO_DAY,
-    );
-    cacheSeconds = env.CACHE_SECONDS
-      ? parseInt(env.CACHE_SECONDS, 10) || cacheSeconds
-      : cacheSeconds;
+    const cacheSeconds = resolveCacheSeconds({
+      requested: cache_seconds,
+      def: CONSTANTS.CARD_CACHE_SECONDS,
+      min: CONSTANTS.SIX_HOURS,
+      max: CONSTANTS.TWO_DAY,
+      env,
+    });
 
     res.setHeader(
       "Cache-Control",
