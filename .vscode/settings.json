@@ -5,4 +5,7 @@
     "cSpell.words": [
         "harryzcy"
     ],
+    "[javascript]": {
+        "editor.tabSize": 2
+    }
 }
