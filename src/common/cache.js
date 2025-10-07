@@ -16,11 +16,29 @@ import { clampValue, CONSTANTS } from "./utils.js";
 const resolveCacheSeconds = ({ requested, def, min, max, env }) => {
   let cacheSeconds = clampValue(isNaN(requested) ? def : requested, min, max);
 
-  cacheSeconds = env.CACHE_SECONDS
-    ? parseInt(env.CACHE_SECONDS, 10) || cacheSeconds
-    : cacheSeconds;
+  if (env.CACHE_SECONDS) {
+    const envCacheSeconds = parseInt(env.CACHE_SECONDS, 10);
+    if (!isNaN(envCacheSeconds)) {
+      cacheSeconds = envCacheSeconds;
+    }
+  }
 
   return cacheSeconds;
+};
+
+/**
+ * Disables caching by setting appropriate headers on the response object.
+ *
+ * @param {Object} res The response object.
+ */
+const disableCaching = (res) => {
+  // Disable caching for browsers, shared caches/CDNs, and GitHub Camo.
+  res.setHeader(
+    "Cache-Control",
+    "no-cache, no-store, must-revalidate, max-age=0, s-maxage=0",
+  );
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
 };
 
 /**
@@ -30,6 +48,11 @@ const resolveCacheSeconds = ({ requested, def, min, max, env }) => {
  * @param {number} cacheSeconds The cache seconds to set in the headers.
  */
 const setCacheHeaders = (res, cacheSeconds) => {
+  if (cacheSeconds < 1) {
+    disableCaching(res);
+    return;
+  }
+
   res.setHeader(
     "Cache-Control",
     `max-age=${cacheSeconds}, ` +
@@ -44,6 +67,14 @@ const setCacheHeaders = (res, cacheSeconds) => {
  * @param {Object} res The response object.
  */
 const setErrorCacheHeaders = (res) => {
+  const envCacheSeconds = process.env.CACHE_SECONDS
+    ? parseInt(process.env.CACHE_SECONDS, 10)
+    : NaN;
+  if (!isNaN(envCacheSeconds) && envCacheSeconds < 1) {
+    disableCaching(res);
+    return;
+  }
+
   // Use lower cache period for errors.
   res.setHeader(
     "Cache-Control",
