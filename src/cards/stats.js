@@ -1,10 +1,10 @@
 // @ts-check
 import process from "node:process";
 import { Card } from "../common/Card.js";
+import { CustomError } from "../common/error.js";
 import { I18n } from "../common/I18n.js";
 import { icons, rankIcon } from "../common/icons.js";
 import {
-  CustomError,
   clampValue,
   flexLayout,
   getCardColors,

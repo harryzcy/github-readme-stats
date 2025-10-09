@@ -1,4 +1,7 @@
-import { CustomError, logger } from "./utils.js";
+// @ts-check
+
+import { CustomError } from "./error.js";
+import { logger } from "./utils.js";
 
 const getMaxRetries = (env) => {
   // Count the number of GitHub API tokens available.
@@ -9,7 +12,7 @@ const getMaxRetries = (env) => {
 
 /**
  * @typedef {import("axios").AxiosResponse} AxiosResponse Axios response.
- * @typedef {(variables: object, token: string) => Promise<AxiosResponse>} FetcherFunction Fetcher function.
+ * @typedef {(variables: object, token: string, retriesForTests?: number) => Promise<AxiosResponse>} FetcherFunction Fetcher function.
  */
 
 /**
@@ -19,7 +22,7 @@ const getMaxRetries = (env) => {
  * @param {object} variables Object with arguments to pass to the fetcher function.
  * @param {object} env Environment variables.
  * @param {number} retries How many times to retry.
- * @returns {Promise<T>} The response from the fetcher function.
+ * @returns {Promise<any>} The response from the fetcher function.
  */
 const retryer = async (fetcher, variables, env, retries = 0) => {
   const useFetch = "IS_CLOUDFLARE" in env; // Cloudflare Workers don't support axios.
@@ -40,7 +43,9 @@ const retryer = async (fetcher, variables, env, retries = 0) => {
     // try to fetch with the first token since RETRIES is 0 index i'm adding +1
     let response = await fetcher(
       variables,
+      // @ts-ignore
       env[`PAT_${retries + 1}`],
+      // used in tests for faking rate limit
       useFetch,
       retries,
     );
