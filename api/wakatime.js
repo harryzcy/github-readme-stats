@@ -1,16 +1,12 @@
 // @ts-check
 
 import { renderWakatimeCard } from "../src/cards/wakatime.js";
-import {
-  CONSTANTS,
-  parseArray,
-  parseBoolean,
-  renderError,
-} from "../src/common/utils.js";
+import { parseArray, parseBoolean, renderError } from "../src/common/utils.js";
 import { fetchWakatimeStats } from "../src/fetchers/wakatime.js";
 import { isLocaleAvailable } from "../src/translations.js";
 import process from "node:process";
 import {
+  CACHE_TTL,
   resolveCacheSeconds,
   setCacheHeaders,
   setErrorCacheHeaders,
@@ -85,9 +81,9 @@ export const handler = async (req, res, env) => {
     });
     const cacheSeconds = resolveCacheSeconds({
       requested: parseInt(cache_seconds, 10),
-      def: CONSTANTS.CARD_CACHE_SECONDS,
-      min: CONSTANTS.SIX_HOURS,
-      max: CONSTANTS.TWO_DAY,
+      def: CACHE_TTL.WAKATIME_CARD.DEFAULT,
+      min: CACHE_TTL.WAKATIME_CARD.MIN,
+      max: CACHE_TTL.WAKATIME_CARD.MAX,
       env,
     });
 
