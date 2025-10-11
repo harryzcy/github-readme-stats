@@ -59,6 +59,7 @@ const noCodingActivityNode = ({ color, text }) => {
  * @returns {string} The compact layout language SVG node.
  */
 const createCompactLangNode = ({ lang, x, y, display_format }) => {
+  // @ts-ignore
   const color = languageColors[lang.name] || "#858585";
   const value =
     display_format === "percent"
@@ -322,6 +323,7 @@ const renderWakatimeCard = (stats = {}, options = { hide: [] }) => {
         // const progress = (width * lang.percent) / 100;
         const progress = ((width - 25) * language.percent) / 100;
 
+        // @ts-ignore
         const languageColor = languageColors[language.name] || "#858585";
 
         const output = `
