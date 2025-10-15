@@ -1,6 +1,5 @@
 // @ts-check
 
-import axios from "axios";
 import toEmoji from "emoji-name-map";
 import process from "node:process";
 import { SECONDARY_ERROR_MESSAGES, TRY_AGAIN_LATER } from "./error.js";
@@ -124,44 +123,6 @@ const clampValue = (number, min, max) => {
     return min;
   }
   return Math.max(min, Math.min(number, max));
-};
-
-/**
- * @typedef {import('axios').AxiosRequestConfig['data']} AxiosRequestConfigData Axios request data.
- * @typedef {import('axios').AxiosRequestConfig['headers']} AxiosRequestConfigHeaders Axios request headers.
- */
-
-/**
- * Send GraphQL request to GitHub API.
- *
- * @param {AxiosRequestConfigData} data Request data.
- * @param {Record<string, string>} headers Request headers.
- * @param {boolean=} useFetch Use fetch instead of axios.
- * @returns {Promise<any>} Request response.
- */
-const request = async (data, headers, useFetch = false) => {
-  // GitHub now requires User-Agent header
-  // https://docs.github.com/en/rest/overview/resources-in-the-rest-api?apiVersion=2022-11-28#user-agent-required
-  headers["User-Agent"] = "github-readme-stats";
-
-  if (useFetch) {
-    const resp = await fetch("https://api.github.com/graphql", {
-      method: "POST",
-      headers,
-      body: JSON.stringify(data),
-    });
-    return {
-      ...resp,
-      data: await resp.json(),
-    };
-  }
-
-  return await axios({
-    url: "https://api.github.com/graphql",
-    method: "post",
-    headers,
-    data,
-  });
 };
 
 /**
@@ -391,7 +352,6 @@ export {
   parseBoolean,
   parseArray,
   clampValue,
-  request,
   flexLayout,
   logger,
   measureText,
