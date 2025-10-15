@@ -1,16 +1,11 @@
 import axios from "axios";
 
 /**
- * @typedef {import('axios').AxiosRequestConfig['data']} AxiosRequestConfigData Axios request data.
- * @typedef {import('axios').AxiosRequestConfig['headers']} AxiosRequestConfigHeaders Axios request headers.
- */
-
-/**
  * Send GraphQL request to GitHub API.
  *
- * @param {AxiosRequestConfigData} data Request data.
- * @param {AxiosRequestConfigHeaders} headers Request headers.
- * @param {boolean=} useFetch Use fetch instead of axios.
+ * @param {import('axios').AxiosRequestConfig['data']} data Request data.
+ * @param {import('axios').AxiosRequestConfig['headers']} headers Request headers.
+ *  * @param {boolean=} useFetch Use fetch instead of axios.
  * @returns {Promise<any>} Request response.
  */
 const request = (data, headers, useFetch = false) => {
