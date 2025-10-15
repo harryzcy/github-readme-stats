@@ -1,7 +1,7 @@
 // @ts-check
 
 import { renderWakatimeCard } from "../src/cards/wakatime.js";
-import { parseArray, parseBoolean, renderError } from "../src/common/utils.js";
+import { renderError } from "../src/common/utils.js";
 import { fetchWakatimeStats } from "../src/fetchers/wakatime.js";
 import { isLocaleAvailable } from "../src/translations.js";
 import process from "node:process";
@@ -16,6 +16,7 @@ import {
   MissingParamError,
   retrieveSecondaryMessage,
 } from "../src/common/error.js";
+import { parseArray, parseBoolean } from "../src/common/ops.js";
 
 // @ts-ignore
 export const handler = async (req, res, env) => {
