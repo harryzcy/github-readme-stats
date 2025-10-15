@@ -1,7 +1,9 @@
+// @ts-check
+
 import { describe, expect, it, jest } from "@jest/globals";
 import "@testing-library/jest-dom";
 import { getMaxRetries, retryer } from "../src/common/retryer.js";
-import { logger } from "../src/common/utils.js";
+import { logger } from "../src/common/log.js";
 
 const fetcher = jest.fn((variables, token) => {
   logger.log(variables, token);
@@ -17,6 +19,7 @@ const fetcherFail = jest.fn(() => {
 const fetcherFailOnSecondTry = jest.fn((_vars, _token, _useFetch, retries) => {
   return new Promise((res) => {
     // faking rate limit
+    // @ts-ignore
     if (retries < 1) {
       return res({ data: { errors: [{ type: "RATE_LIMITED" }] } });
     }
@@ -28,6 +31,7 @@ const fetcherFailWithMessageBasedRateLimitErr = jest.fn(
   (_vars, _token, _useFetch, retries) => {
     return new Promise((res) => {
       // faking rate limit
+      // @ts-ignore
       if (retries < 1) {
         return res({
           data: {
@@ -76,6 +80,7 @@ describe("Test Retryer", () => {
       await retryer(fetcherFail, {}, process.env);
     } catch (err) {
       expect(fetcherFail).toBeCalledTimes(getMaxRetries(process.env) + 1);
+      // @ts-ignore
       expect(err.message).toBe("Downtime due to GitHub API rate limiting");
     }
   });

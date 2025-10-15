@@ -1,7 +1,7 @@
 // @ts-check
 
 import { CustomError } from "./error.js";
-import { logger } from "./utils.js";
+import { logger } from "./log.js";
 
 const getMaxRetries = (env) => {
   // Count the number of GitHub API tokens available.
