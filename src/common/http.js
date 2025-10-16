@@ -5,7 +5,7 @@ import axios from "axios";
  *
  * @param {import('axios').AxiosRequestConfig['data']} data Request data.
  * @param {import('axios').AxiosRequestConfig['headers']} headers Request headers.
- *  * @param {boolean=} useFetch Use fetch instead of axios.
+ * @param {boolean=} useFetch Use fetch instead of axios.
  * @returns {Promise<any>} Request response.
  */
 const request = (data, headers, useFetch = false) => {
