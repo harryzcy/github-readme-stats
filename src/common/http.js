@@ -18,7 +18,7 @@ const request = async (data, headers, useFetch = false) => {
     const text = await response.text();
     return {
       ...response,
-      text: await response.text(),
+      text,
       data: JSON.parse(text),
     };
   }
