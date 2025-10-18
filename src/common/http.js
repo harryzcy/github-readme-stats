@@ -16,16 +16,16 @@ const request = async (data, headers, useFetch = false) => {
       body: JSON.stringify(data),
     });
     const text = await response.text();
-    let data = {};
+    let responseData = {};
     try {
-      data = JSON.parse(text);
+      responseData = JSON.parse(text);
     } catch (e) {
       // ignore JSON parse errors
     }
     return {
       ...response,
       text,
-      data,
+      responseData,
     };
   }
 
