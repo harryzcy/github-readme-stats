@@ -159,7 +159,7 @@ export const handler = async (_, res, env) => {
     // Throw error if something went wrong.
     logger.error(err);
     res.setHeader("Cache-Control", "no-store");
-    res.send("Something went wrong: " + err.message);
+    res.send("Something went wrong: " + err.message + " at " + err.lineNumber);
   }
 };
 
