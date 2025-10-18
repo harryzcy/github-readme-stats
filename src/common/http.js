@@ -15,22 +15,22 @@ const request = (data, headers, useFetch = false) => {
       headers,
       body: JSON.stringify(data),
     }).then(async (resp) => {
-      console.log("Fetch response status: " + resp.status);
       const text = await resp.text();
-      console.log("Fetch response text: " + text);
       return {
         ...resp,
+        text: await resp.text(),
         data: JSON.parse(text),
       };
     });
   }
 
-  return axios({
-    url: "https://api.github.com/graphql",
-    method: "post",
-    headers,
-    data,
-  });
+  // return axios({
+  //   url: "https://api.github.com/graphql",
+  //   method: "post",
+  //   headers,
+  //   data,
+  // });
+  throw new Error("Axios requests are disabled.");
 };
 
 export { request };

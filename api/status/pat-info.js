@@ -22,8 +22,8 @@ export const RATE_LIMIT_SECONDS = 60 * 5; // 1 request per 5 minutes
  * @param {boolean} useFetch Use fetch instead of axios.
  * @returns {Promise<import('axios').AxiosResponse>} The response.
  */
-const uptimeFetcher = (variables, token, useFetch) => {
-  return request(
+const uptimeFetcher = async (variables, token, useFetch) => {
+  return await request(
     {
       query: `
         query {
@@ -68,10 +68,6 @@ const getPATInfo = async (fetcher, variables, env) => {
   /** @type {Record<string, any>} */
   const details = {};
   const PATs = getAllPATs(env);
-  // console.log("Found " + PATs.length + " PATs to check.");
-  return {
-    numberOfPATs: PATs.length,
-  };
 
   for (const pat of PATs) {
     try {
