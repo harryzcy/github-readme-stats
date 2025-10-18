@@ -78,7 +78,7 @@ const shieldsUptimeBadge = (up) => {
  *
  * @param {any} req The request.
  * @param {any} res The response.
- * @param {object} env The environment variables.
+ * @param {{[key: string]: string}} env The environment variables.
  * @returns {Promise<void>} Nothing.
  */
 export const handler = async (req, res, env) => {
