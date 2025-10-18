@@ -55,7 +55,7 @@ const getAllPATs = (env) => {
  *
  * @param {Fetcher} fetcher The fetcher function.
  * @param {any} variables Fetcher variables.
- * @param {object} env The environment variables.
+ * @param {{[key: string]: string}} env The environment variables.
  * @returns {Promise<PATInfo>} The response.
  */
 const getPATInfo = async (fetcher, variables, env) => {
