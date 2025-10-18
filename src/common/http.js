@@ -19,7 +19,7 @@ const request = async (data, headers, useFetch = false) => {
     return {
       ...response,
       text,
-      data: JSON.parse(text),
+      // data: JSON.parse(text),
     };
   }
 

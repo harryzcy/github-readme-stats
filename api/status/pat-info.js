@@ -72,6 +72,7 @@ const getPATInfo = async (fetcher, variables, env) => {
   for (const pat of PATs) {
     try {
       const response = await fetcher(variables, env[pat], true);
+      throw new Error("response: " + JSON.stringify(response));
       const errors = response.data.errors;
       const hasErrors = Boolean(errors);
       const errorType = errors?.[0]?.type;
