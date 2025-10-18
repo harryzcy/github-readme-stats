@@ -10,6 +10,9 @@ import axios from "axios";
  */
 const request = async (data, headers, useFetch = false) => {
   if (useFetch) {
+    if (!headers["User-Agent"]) {
+      headers["User-Agent"] = "github-readme-stats";
+    }
     const response = await fetch("https://api.github.com/graphql", {
       method: "POST",
       headers,
