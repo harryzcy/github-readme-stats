@@ -12,7 +12,7 @@ const getMaxRetries = (env) => {
 
 /**
  * @typedef {import("axios").AxiosResponse} AxiosResponse Axios response.
- * @typedef {(variables: any, token: string, retriesForTests?: number) => Promise<AxiosResponse>} FetcherFunction Fetcher function.
+ * @typedef {(variables: any, token: string, useFetch: boolean, retriesForTests?: number) => Promise<AxiosResponse>} FetcherFunction Fetcher function.
  */
 
 /**
