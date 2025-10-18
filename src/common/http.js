@@ -8,20 +8,19 @@ import axios from "axios";
  * @param {boolean=} useFetch Use fetch instead of axios.
  * @returns {Promise<any>} Request response.
  */
-const request = (data, headers, useFetch = false) => {
+const request = async (data, headers, useFetch = false) => {
   if (useFetch) {
-    return fetch("https://api.github.com/graphql", {
+    const response = await fetch("https://api.github.com/graphql", {
       method: "POST",
       headers,
       body: JSON.stringify(data),
-    }).then(async (resp) => {
-      const text = await resp.text();
-      return {
-        ...resp,
-        text: await resp.text(),
-        data: JSON.parse(text),
-      };
     });
+    const text = await response.text();
+    return {
+      ...response,
+      text: await response.text(),
+      data: JSON.parse(text),
+    };
   }
 
   // return axios({
