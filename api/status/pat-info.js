@@ -62,13 +62,16 @@ const getAllPATs = (env) => {
  * @param {Fetcher} fetcher The fetcher function.
  * @param {any} variables Fetcher variables.
  * @param {{[key: string]: string}} env The environment variables.
- * @returns {Promise<PATInfo>} The response.
+ * @returns {Promise<object>} The response.
  */
 const getPATInfo = async (fetcher, variables, env) => {
   /** @type {Record<string, any>} */
   const details = {};
   const PATs = getAllPATs(env);
-  console.log("Found " + PATs.length + " PATs to check.");
+  // console.log("Found " + PATs.length + " PATs to check.");
+  return {
+    numberOfPATs: PATs.length,
+  };
 
   for (const pat of PATs) {
     try {
