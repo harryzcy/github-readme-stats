@@ -55,7 +55,7 @@ const fetcher = (variables, token, useFetch) => {
 /**
  * Fetch top languages for a given username.
  *
- * @param {object} env Environment variables.
+ * @param {{[key: string]: string}} env Environment variables.
  * @param {string} username GitHub username.
  * @param {string[]} exclude_repo List of repositories to exclude.
  * @param {number} size_weight Weightage to be given to size.

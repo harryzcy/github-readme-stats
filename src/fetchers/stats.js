@@ -110,7 +110,7 @@ const fetcher = (variables, token, useFetch) => {
  * @param {boolean} variables.includeDiscussions Include discussions.
  * @param {boolean} variables.includeDiscussionsAnswers Include discussions answers.
  * @param {string|undefined} variables.startTime Time to start the count of total commits.
- * @param {object} variables.env Environment variables.
+ * @param {{[key: string]: string}} variables.env Environment variables.
  * @returns {Promise<import('axios').AxiosResponse>} Axios response.
  *
  * @description This function supports multi-page fetching if the 'FETCH_MULTI_PAGE_STARS' environment variable is set to true.
@@ -188,7 +188,7 @@ const fetchTotalCommits = (variables, token) => {
  * Fetch all the commits for all the repositories of a given username.
  *
  * @param {string} username GitHub username.
- * @param {object} env Environment variables.
+ * @param {{[key: string]: string}} env Environment variables.
  * @returns {Promise<number>} Total commits.
  *
  * @description Done like this because the GitHub API does not provide a way to fetch all the commits. See
@@ -221,7 +221,7 @@ const totalCommitsFetcher = async (username, env) => {
 /**
  * Fetch stats for a given username.
  *
- * @param {object} env Environment variables.
+ * @param {{[key: string]: string}} env Environment variables.
  * @param {string} username GitHub username.
  * @param {boolean} include_all_commits Include all commits.
  * @param {string[]} exclude_repo Repositories to exclude.

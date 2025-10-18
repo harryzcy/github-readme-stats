@@ -64,7 +64,7 @@ const urlExample = "/api/pin?username=USERNAME&amp;repo=REPO_NAME";
 /**
  * Fetch repository data.
  *
- * @param {object} env Environment variables.
+ * @param {{[key: string]: string}} env Environment variables.
  * @param {string} username GitHub username.
  * @param {string} reponame GitHub repository name.
  * @returns {Promise<RepositoryData>} Repository data.
