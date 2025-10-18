@@ -15,9 +15,12 @@ const request = (data, headers, useFetch = false) => {
       headers,
       body: JSON.stringify(data),
     }).then(async (resp) => {
+      console.log("Fetch response status: " + resp.status);
+      const text = await resp.text();
+      console.log("Fetch response text: " + text);
       return {
         ...resp,
-        data: await resp.json(),
+        data: JSON.parse(text),
       };
     });
   }
