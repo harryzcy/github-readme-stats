@@ -4,3 +4,10 @@ compatibility_date = "2025-05-05"
 compatibility_flags = [ "nodejs_compat" ]
 
 [vars]
+
+[observability]
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
+persist = true
