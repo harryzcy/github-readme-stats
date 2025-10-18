@@ -46,7 +46,7 @@ const getAllPATs = (env) => {
 };
 
 /**
- * @typedef {(variables: any, token: string) => Promise<import('axios').AxiosResponse>} Fetcher The fetcher function.
+ * @typedef {(variables: any, token: string, useFetch: boolean) => Promise<import('axios').AxiosResponse>} Fetcher The fetcher function.
  * @typedef {{validPATs: string[], expiredPATs: string[], exhaustedPATs: string[], suspendedPATs: string[], errorPATs: string[], details: any}} PATInfo The PAT info.
  */
 
@@ -65,7 +65,7 @@ const getPATInfo = async (fetcher, variables, env) => {
 
   for (const pat of PATs) {
     try {
-      const response = await fetcher(variables, env[pat]);
+      const response = await fetcher(variables, env[pat], true);
       const errors = response.data.errors;
       const hasErrors = Boolean(errors);
       const errorType = errors?.[0]?.type;
