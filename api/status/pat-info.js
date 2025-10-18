@@ -41,6 +41,12 @@ const uptimeFetcher = (variables, token, useFetch) => {
   );
 };
 
+/**
+ * Get all PAT environment variable names.
+ *
+ * @param {{[key: string]: string}} env The environment variables.
+ * @returns {string[]} The PAT environment variable names.
+ */
 const getAllPATs = (env) => {
   return Object.keys(env).filter((key) => /PAT_\d*$/.exec(key));
 };
@@ -62,6 +68,7 @@ const getPATInfo = async (fetcher, variables, env) => {
   /** @type {Record<string, any>} */
   const details = {};
   const PATs = getAllPATs(env);
+  console.log("Found " + PATs.length + " PATs to check.");
 
   for (const pat of PATs) {
     try {
@@ -140,7 +147,7 @@ const getPATInfo = async (fetcher, variables, env) => {
  *
  * @param {any} _ The request.
  * @param {any} res The response.
- * @param {object} env The environment variables.
+ * @param {{[key: string]: string}} env The environment variables.
  * @returns {Promise<void>} The response.
  */
 export const handler = async (_, res, env) => {
