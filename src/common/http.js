@@ -28,7 +28,7 @@ const request = async (data, headers, useFetch = false) => {
     return {
       ...response,
       text,
-      responseData,
+      data: responseData,
     };
   }
 
