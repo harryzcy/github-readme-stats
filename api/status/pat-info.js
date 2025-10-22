@@ -22,8 +22,8 @@ export const RATE_LIMIT_SECONDS = 60 * 5; // 1 request per 5 minutes
  * @param {boolean} useFetch Use fetch instead of axios.
  * @returns {Promise<import('axios').AxiosResponse>} The response.
  */
-const uptimeFetcher = (variables, token, useFetch) => {
-  return request(
+const uptimeFetcher = async (variables, token, useFetch) => {
+  return await request(
     {
       query: `
         query {
@@ -41,12 +41,18 @@ const uptimeFetcher = (variables, token, useFetch) => {
   );
 };
 
+/**
+ * Get all PAT environment variable names.
+ *
+ * @param {{[key: string]: string}} env The environment variables.
+ * @returns {string[]} The PAT environment variable names.
+ */
 const getAllPATs = (env) => {
   return Object.keys(env).filter((key) => /PAT_\d*$/.exec(key));
 };
 
 /**
- * @typedef {(variables: any, token: string) => Promise<import('axios').AxiosResponse>} Fetcher The fetcher function.
+ * @typedef {(variables: any, token: string, useFetch: boolean) => Promise<import('axios').AxiosResponse>} Fetcher The fetcher function.
  * @typedef {{validPATs: string[], expiredPATs: string[], exhaustedPATs: string[], suspendedPATs: string[], errorPATs: string[], details: any}} PATInfo The PAT info.
  */
 
@@ -56,7 +62,7 @@ const getAllPATs = (env) => {
  * @param {Fetcher} fetcher The fetcher function.
  * @param {any} variables Fetcher variables.
  * @param {{[key: string]: string}} env The environment variables.
- * @returns {Promise<PATInfo>} The response.
+ * @returns {Promise<object>} The response.
  */
 const getPATInfo = async (fetcher, variables, env) => {
   /** @type {Record<string, any>} */
@@ -65,7 +71,7 @@ const getPATInfo = async (fetcher, variables, env) => {
 
   for (const pat of PATs) {
     try {
-      const response = await fetcher(variables, env[pat]);
+      const response = await fetcher(variables, env[pat], true);
       const errors = response.data.errors;
       const hasErrors = Boolean(errors);
       const errorType = errors?.[0]?.type;
@@ -159,7 +165,7 @@ export const handler = async (_, res, env) => {
     // Throw error if something went wrong.
     logger.error(err);
     res.setHeader("Cache-Control", "no-store");
-    res.send("Something went wrong: " + err.message);
+    res.send("Something went wrong: " + err.message + " at " + err.lineNumber);
   }
 };
 
