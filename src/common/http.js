@@ -10,29 +10,37 @@ import axios from "axios";
  * @param {boolean=} useFetch Use fetch instead of axios.
  * @returns {Promise<any>} Request response.
  */
-const request = (data, headers, useFetch = false) => {
+const request = async (data, headers, useFetch = false) => {
   if (useFetch) {
     if (!headers["User-Agent"]) {
       headers["User-Agent"] = "github-readme-stats";
     }
-    return fetch("https://api.github.com/graphql", {
+    const response = await fetch("https://api.github.com/graphql", {
       method: "POST",
       headers,
       body: JSON.stringify(data),
-    }).then(async (resp) => {
-      return {
-        ...resp,
-        data: await resp.json(),
-      };
     });
+    const text = await response.text();
+    let responseData = {};
+    try {
+      responseData = JSON.parse(text);
+    } catch (e) {
+      // ignore JSON parse errors
+    }
+    return {
+      ...response,
+      text,
+      data: responseData,
+    };
   }
 
-  return axios({
-    url: "https://api.github.com/graphql",
-    method: "post",
-    headers,
-    data,
-  });
+  // return axios({
+  //   url: "https://api.github.com/graphql",
+  //   method: "post",
+  //   headers,
+  //   data,
+  // });
+  throw new Error("Axios requests are disabled.");
 };
 
 export { request };
