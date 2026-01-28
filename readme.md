@@ -90,9 +90,8 @@
     - [First step: get your Personal Access Token (PAT)](#first-step-get-your-personal-access-token-pat)
     - [On Vercel](#on-vercel)
     - [:film\_projector: Check Out Step By Step Video Tutorial By @codeSTACKr](#film_projector-check-out-step-by-step-video-tutorial-by-codestackr)
-    - [On other platforms](#on-other-platforms)
     - [Cloudflare Workers](#cloudflare-workers)
-    - [Others](#others)
+    - [On other platforms](#on-other-platforms)
     - [Available environment variables](#available-environment-variables)
   - [Keep your fork up to date](#keep-your-fork-up-to-date)
 - [:sparkling\_heart: Support the project](#sparkling_heart-support-the-project)
@@ -919,14 +918,6 @@ Since the GitHub API only allows 5k requests per hour, my `https://github-readme
 
 </details>
 
-### On other platforms
-
-> [!WARNING]
-> This way of using GRS is not officially supported and was added to cater to some particular use cases where Vercel could not be used (e.g. [#2341](https://github.com/anuraghazra/github-readme-stats/discussions/2341)). The support for this method, therefore, is limited.
-
-<details>
-<summary><b>:hammer_and_wrench: Step-by-step guide for deploying on other platforms</b></summary>
-
 ### Cloudflare Workers
 
 1. Fork or clone this repo as per your needs
@@ -935,7 +926,13 @@ Since the GitHub API only allows 5k requests per hour, my `https://github-readme
 4. Run `npx wrangler deploy` to deploy to Cloudflare Workers
 5. You're done 🎉
 
-### Others
+### On other platforms
+
+> [!WARNING]
+> This way of using GRS is not officially supported and was added to cater to some particular use cases where Vercel could not be used (e.g. [#2341](https://github.com/anuraghazra/github-readme-stats/discussions/2341)). The support for this method, therefore, is limited.
+
+<details>
+<summary><b>:hammer_and_wrench: Step-by-step guide for deploying on other platforms</b></summary>
 
 1. Fork or clone this repo as per your needs
 2. Move `express` from the devDependencies to the dependencies section of `package.json`
