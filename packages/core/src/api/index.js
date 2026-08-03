@@ -1,5 +1,5 @@
 import { renderStatsCard } from "../cards/stats.js";
-import { findInvalidColor } from "../common/color.js";
+import { findInvalidColorParam, pickColorParams } from "../common/color.js";
 import {
   MissingParamError,
   retrieveSecondaryMessage,
@@ -24,13 +24,7 @@ export default async (
     include_all_commits,
     commits_year,
     line_height,
-    title_color,
-    ring_color,
-    icon_color,
-    text_color,
     text_bold,
-    bg_color,
-    theme,
     exclude_repo,
     custom_title,
     locale,
@@ -39,20 +33,15 @@ export default async (
     number_format,
     role,
     number_precision,
-    border_color,
     rank_icon,
     show,
+    ...remainingParams
   },
   pat = null,
 ) => {
-  const invalidColorInput = findInvalidColor({
-    title_color,
-    ring_color,
-    icon_color,
-    text_color,
-    bg_color,
-    border_color,
-  });
+  const colorParams = pickColorParams(remainingParams);
+
+  const invalidColorInput = findInvalidColorParam(colorParams);
   if (invalidColorInput) {
     return {
       status: "error - permanent",
@@ -69,13 +58,7 @@ export default async (
       content: renderError({
         message: "Something went wrong",
         secondaryMessage: "Language not found",
-        renderOptions: {
-          title_color,
-          text_color,
-          bg_color,
-          border_color,
-          theme,
-        },
+        renderOptions: colorParams,
       }),
     };
   }
@@ -92,13 +75,7 @@ export default async (
         message: "Something went wrong",
         secondaryMessage:
           "Username, repository or owner contains unsafe characters",
-        renderOptions: {
-          title_color,
-          text_color,
-          bg_color,
-          border_color,
-          theme,
-        },
+        renderOptions: colorParams,
       }),
     };
   }
@@ -136,6 +113,7 @@ export default async (
       content: renderStatsCard(
         stats,
         {
+          ...colorParams,
           hide: parseArray(hide),
           show_icons: parseBoolean(show_icons),
           hide_title: parseBoolean(hide_title),
@@ -145,16 +123,9 @@ export default async (
           include_all_commits: parseBoolean(include_all_commits),
           commits_year: parseInt(commits_year, 10),
           line_height,
-          title_color,
-          ring_color,
-          icon_color,
-          text_color,
           text_bold: parseBoolean(text_bold),
-          bg_color,
-          theme,
           custom_title,
           border_radius,
-          border_color,
           number_format,
           number_precision: parseInt(number_precision, 10),
           locale: locale ? locale.toLowerCase() : null,
@@ -175,11 +146,7 @@ export default async (
           message: err.message,
           secondaryMessage: retrieveSecondaryMessage(err),
           renderOptions: {
-            title_color,
-            text_color,
-            bg_color,
-            border_color,
-            theme,
+            ...colorParams,
             show_repo_link: !(err instanceof MissingParamError),
           },
         }),
@@ -189,13 +156,7 @@ export default async (
       status: "error - temporary",
       content: renderError({
         message: "An unknown error occurred",
-        renderOptions: {
-          title_color,
-          text_color,
-          bg_color,
-          border_color,
-          theme,
-        },
+        renderOptions: colorParams,
       }),
     };
   }

@@ -1,6 +1,6 @@
 import { Card } from "../common/Card.js";
 import { I18n } from "../common/I18n.js";
-import { getCardColors, isPrefixedHexColor } from "../common/color.js";
+import { getLightDarkColors } from "../common/color.js";
 import { kFormatter, wrapTextMultiline } from "../common/fmt.js";
 import { encodeHTML } from "../common/html.js";
 import { icons } from "../common/icons.js";
@@ -29,26 +29,21 @@ const DESCRIPTION_MAX_LINES = 3;
  * Retrieves the repository description and wraps it to fit the card width.
  *
  * @param {string} label The repository description.
- * @param {string} textColor The color of the text.
  * @returns {string} Wrapped repo description SVG object.
  */
-const getBadgeSVG = (label, textColor, xOffset = 0) => {
-  if (!isPrefixedHexColor(textColor)) {
-    throw new Error(`Invalid text color: "${textColor}"`);
-  }
+const getBadgeSVG = (label, xOffset = 0) => {
   if (!Number.isFinite(xOffset)) {
     throw new Error(`Invalid xOffset: "${xOffset}"`);
   }
 
   return `
     <g data-testid="badge" class="badge" transform="translate(${320 + xOffset}, -18)">
-      <rect stroke="${textColor}" stroke-width="1" width="70" height="20" x="-12" y="-14" ry="10" rx="10"></rect>
+      <rect stroke-width="1" width="70" height="20" x="-12" y="-14" ry="10" rx="10"></rect>
       <text
         x="23" y="-5"
         alignment-baseline="central"
         dominant-baseline="central"
         text-anchor="middle"
-        fill="${textColor}"
       >
         ${encodeHTML(label)}
       </text>
@@ -86,10 +81,6 @@ const renderRepoCard = (repo, options = {}) => {
   } = repo;
   const {
     hide_border = false,
-    title_color,
-    icon_color,
-    text_color,
-    bg_color,
     card_width_input,
     show_owner = false,
     browser_rendering = false,
@@ -101,7 +92,6 @@ const renderRepoCard = (repo, options = {}) => {
     username,
     theme = "default_repocard",
     border_radius,
-    border_color,
     locale,
     description_lines_count,
   } = options;
@@ -249,15 +239,7 @@ const renderRepoCard = (repo, options = {}) => {
     descriptionLinesCount * lineHeight +
     extraHeight;
 
-  // returns theme based colors with proper overrides and defaults
-  const colors = getCardColors({
-    title_color,
-    icon_color,
-    text_color,
-    bg_color,
-    border_color,
-    theme,
-  });
+  const { lightColors, darkColors } = getLightDarkColors({ ...options, theme });
 
   const svgLanguage = primaryLanguage
     ? createLanguageNode(langName, langColor)
@@ -314,22 +296,24 @@ const renderRepoCard = (repo, options = {}) => {
     width: card_width,
     height,
     border_radius,
-    colors,
+    colors: { light: lightColors, dark: darkColors },
   });
 
   card.disableAnimations();
   card.setHideBorder(hide_border);
   card.setHideTitle(false);
-  card.setCSS(`
+  card.setCSS({
+    light: `
     .description {
-      font: 400 ${DESCRIPTION_FONT_SIZE}px 'Segoe UI', Ubuntu, Sans-Serif;fill: ${colors.textColor};
-      ${browser_rendering ? wrappedTextStyles(colors.textColor) : ""}
+      font: 400 ${DESCRIPTION_FONT_SIZE}px 'Segoe UI', Ubuntu, Sans-Serif;fill: ${lightColors.textColor};
+      ${browser_rendering ? wrappedTextStyles(lightColors.textColor) : ""}
     }
-    .gray { font: 400 12px 'Segoe UI', Ubuntu, Sans-Serif; fill: ${colors.textColor} }
+    .gray { font: 400 12px 'Segoe UI', Ubuntu, Sans-Serif; fill: ${lightColors.textColor} }
     .badge { font: 600 11px 'Segoe UI', Ubuntu, Sans-Serif; }
-    .badge rect { opacity: 0.2 }
+    .badge rect { opacity: 0.2; stroke: ${lightColors.textColor} }
+    .badge text { fill: ${lightColors.textColor} }
 
-    .stat { font: 400 12px 'Segoe UI', Ubuntu, Sans-Serif; fill: ${colors.textColor} }
+    .stat { font: 400 12px 'Segoe UI', Ubuntu, Sans-Serif; fill: ${lightColors.textColor} }
     .stagger {
       opacity: 0;
       animation: fadeInAnimation 0.3s ease-in-out forwards;
@@ -337,10 +321,24 @@ const renderRepoCard = (repo, options = {}) => {
     .not_bold { font-weight: 400 }
     .bold { font-weight: 700 }
     .icon {
-      fill: ${colors.iconColor};
+      fill: ${lightColors.iconColor};
       display: block;
     }
-  `);
+  `,
+    dark: darkColors
+      ? `
+      .description {
+        fill: ${darkColors.textColor};
+        ${browser_rendering ? wrappedTextStyles(darkColors.textColor) : ""}
+      }
+      .gray { fill: ${darkColors.textColor} }
+      .badge rect { stroke: ${darkColors.textColor} }
+      .badge text { fill: ${darkColors.textColor} }
+      .stat { fill: ${darkColors.textColor} }
+      .icon { fill: ${darkColors.iconColor}; }
+    `
+      : null,
+  });
 
   return card.render(`
     ${
@@ -348,14 +346,12 @@ const renderRepoCard = (repo, options = {}) => {
         ? // @ts-ignore
           getBadgeSVG(
             i18n.t("repocard.template"),
-            colors.textColor,
             card_width - CARD_DEFAULT_WIDTH,
           )
         : isArchived
           ? // @ts-ignore
             getBadgeSVG(
               i18n.t("repocard.archived"),
-              colors.textColor,
               card_width - CARD_DEFAULT_WIDTH,
             )
           : ""

@@ -1,10 +1,6 @@
 import { Card } from "../common/Card.js";
 import { I18n } from "../common/I18n.js";
-import {
-  fallbackColor,
-  getCardColors,
-  isPrefixedHexColor,
-} from "../common/color.js";
+import { getLightDarkColors, isPrefixedHexColor } from "../common/color.js";
 import { formatBytes } from "../common/fmt.js";
 import { encodeHTML } from "../common/html.js";
 import { chunkArray, clampValue, lowercaseTrim } from "../common/ops.js";
@@ -219,7 +215,6 @@ const getDisplayValue = (size, percentages, format) => {
  * @param {object} props Function properties.
  * @param {number} props.width The card width
  * @param {string} props.color Color of the programming language.
- * @param {string} props.progBarBgColor Color of the background of progress bar.
  * @param {string} props.name Name of the programming language.
  * @param {number} props.size Size of the programming language.
  * @param {number} props.totalSize Total size of all languages.
@@ -231,7 +226,6 @@ const getDisplayValue = (size, percentages, format) => {
 const createProgressTextNode = ({
   width,
   color,
-  progBarBgColor,
   name,
   size,
   totalSize,
@@ -257,7 +251,6 @@ const createProgressTextNode = ({
         color,
         width: progressWidth,
         progress,
-        progressBarBackgroundColor: progBarBgColor,
         delay: staggerDelay + 300,
       })}
     </g>
@@ -390,7 +383,6 @@ const createDonutLanguagesNode = ({
  * @param {Lang[]} langs Array of programming languages.
  * @param {number} width Card width.
  * @param {number} totalLanguageSize Total size of all languages.
- * @param progBarBgColor Color of the background of progress bar.
  * @param {string} statsFormat Stats format.
  * @param {boolean=} hideValues Whether to hide stats values.
  * @returns {string} Normal layout card SVG object.
@@ -399,7 +391,6 @@ const renderNormalLayout = (
   langs,
   width,
   totalLanguageSize,
-  progBarBgColor,
   statsFormat,
   hideValues,
 ) => {
@@ -414,7 +405,6 @@ const renderNormalLayout = (
         statsFormat,
         hideValues,
         index,
-        progBarBgColor,
       });
     }),
     gap: 40,
@@ -811,20 +801,15 @@ const renderDonutLayout = (
  * Creates the no languages data SVG node.
  *
  * @param {object} props Object with function properties.
- * @param {string} props.color No languages data text color.
  * @param {string} props.text No languages data translated text.
  * @param {Layout | undefined} props.layout Card layout.
  * @returns {string} No languages data SVG node string.
  */
-const noLanguagesDataNode = ({ color, text, layout }) => {
-  if (!isPrefixedHexColor(color)) {
-    throw new Error(`Invalid text color: "${color}"`);
-  }
-
+const noLanguagesDataNode = ({ text, layout }) => {
   return `
     <text x="${
       layout === "pie" || layout === "donut-vertical" ? CARD_PADDING : 0
-    }" y="11" class="stat bold" fill="${color}">${encodeHTML(text)}</text>
+    }" y="11" class="stat bold">${encodeHTML(text)}</text>
   `;
 };
 
@@ -866,20 +851,14 @@ const renderTopLanguages = (topLangs, options = {}) => {
     hide_title = false,
     hide_border = false,
     card_width,
-    title_color,
-    text_color,
-    bg_color,
-    prog_bar_bg_color,
     hide,
     hide_progress,
     hide_values,
-    theme,
     layout,
     custom_title,
     locale,
     langs_count = getDefaultLanguagesCountByLayout({ layout, hide_progress }),
     border_radius,
-    border_color,
     disable_animations,
     stats_format = "percentages",
   } = options;
@@ -904,20 +883,12 @@ const renderTopLanguages = (topLangs, options = {}) => {
     : DEFAULT_CARD_WIDTH;
   let height = calculateNormalLayoutHeight(langs.length);
 
-  // returns theme based colors with proper overrides and defaults
-  const colors = getCardColors({
-    title_color,
-    text_color,
-    bg_color,
-    border_color,
-    theme,
-  });
+  const { lightColors, darkColors } = getLightDarkColors(options);
 
   let finalLayout;
   if (langs.length === 0) {
     height = COMPACT_LAYOUT_BASE_HEIGHT;
     finalLayout = noLanguagesDataNode({
-      color: colors.textColor,
       text: i18n.t("langcard.nodata"),
       layout,
     });
@@ -964,7 +935,6 @@ const renderTopLanguages = (topLangs, options = {}) => {
       langs,
       width,
       totalLanguageSize,
-      fallbackColor(prog_bar_bg_color, "#ddd"),
       stats_format,
       hide_values,
     );
@@ -976,7 +946,7 @@ const renderTopLanguages = (topLangs, options = {}) => {
     width,
     height,
     border_radius,
-    colors,
+    colors: { light: lightColors, dark: darkColors },
   });
 
   if (disable_animations) {
@@ -985,8 +955,8 @@ const renderTopLanguages = (topLangs, options = {}) => {
 
   card.setHideBorder(hide_border);
   card.setHideTitle(hide_title);
-  card.setCSS(
-    `
+  card.setCSS({
+    light: `
     @keyframes slideInAnimation {
       from {
         width: 0;
@@ -1004,7 +974,7 @@ const renderTopLanguages = (topLangs, options = {}) => {
       }
     }
     .stat {
-      font: 600 14px 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif; fill: ${colors.textColor};
+      font: 600 14px 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif; fill: ${lightColors.textColor};
     }
     @supports(-moz-appearance: auto) {
       /* Selector detects Firefox */
@@ -1013,7 +983,7 @@ const renderTopLanguages = (topLangs, options = {}) => {
     .bold { font-weight: 700 }
     .lang-name {
       font: 400 11px "Segoe UI", Ubuntu, Sans-Serif;
-      fill: ${colors.textColor};
+      fill: ${lightColors.textColor};
     }
     .stagger {
       opacity: 0;
@@ -1025,8 +995,16 @@ const renderTopLanguages = (topLangs, options = {}) => {
     .lang-progress{
       animation: growWidthAnimation 0.6s ease-in-out forwards;
     }
+    .progress-background { fill: ${lightColors.progBarBgColor}; }
     `,
-  );
+    dark: darkColors
+      ? `
+      .stat { fill: ${darkColors.textColor}; }
+      .lang-name { fill: ${darkColors.textColor}; }
+      .progress-background { fill: ${darkColors.progBarBgColor}; }
+    `
+      : null,
+  });
 
   if (layout === "pie" || layout === "donut-vertical") {
     return card.render(finalLayout);

@@ -1,6 +1,6 @@
 import { Card } from "../common/Card.js";
 import { I18n } from "../common/I18n.js";
-import { getCardColors } from "../common/color.js";
+import { getLightDarkColors } from "../common/color.js";
 import { CustomError } from "../common/error.js";
 import { kFormatter } from "../common/fmt.js";
 import { encodeHTML } from "../common/html.js";
@@ -311,16 +311,9 @@ const renderStatsCard = (
     include_all_commits = false,
     commits_year,
     line_height = 25,
-    title_color,
-    ring_color,
-    icon_color,
-    text_color,
     text_bold = true,
-    bg_color,
-    theme = "default",
     custom_title,
     border_radius,
-    border_color,
     number_format = "short",
     number_precision,
     locale,
@@ -331,17 +324,8 @@ const renderStatsCard = (
 
   const lheight = parseInt(String(line_height), 10);
 
-  // returns theme based colors with proper overrides and defaults
-  const { titleColor, iconColor, textColor, bgColor, borderColor, ringColor } =
-    getCardColors({
-      title_color,
-      text_color,
-      icon_color,
-      bg_color,
-      border_color,
-      ring_color,
-      theme,
-    });
+  const { lightColors, darkColors } = getLightDarkColors(options);
+  const { titleColor, iconColor, textColor, ringColor } = lightColors;
 
   const apostrophe = /s$/i.test(name.trim()) ? "" : "s";
   const i18n = new I18n({
@@ -538,14 +522,6 @@ const renderStatsCard = (
 
   // the lower the user's percentile the better
   const progress = 100 - rank.percentile;
-  const cssStyles = getStyles({
-    titleColor,
-    ringColor,
-    textColor,
-    iconColor,
-    show_icons,
-    progress,
-  });
 
   const calculateTextWidth = () => {
     return measureText(
@@ -593,18 +569,31 @@ const renderStatsCard = (
     width,
     height,
     border_radius,
-    colors: {
-      titleColor,
-      textColor,
-      iconColor,
-      bgColor,
-      borderColor,
-    },
+    colors: { light: lightColors, dark: darkColors },
   });
 
   card.setHideBorder(hide_border);
   card.setHideTitle(hide_title);
-  card.setCSS(cssStyles);
+  card.setCSS({
+    light: getStyles({
+      titleColor,
+      ringColor,
+      textColor,
+      iconColor,
+      show_icons,
+      progress,
+    }),
+    dark: darkColors
+      ? getStyles({
+          titleColor: darkColors.titleColor,
+          ringColor: darkColors.ringColor,
+          textColor: darkColors.textColor,
+          iconColor: darkColors.iconColor,
+          show_icons,
+          progress,
+        })
+      : null,
+  });
 
   if (disable_animations) {
     card.disableAnimations();

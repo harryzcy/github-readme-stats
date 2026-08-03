@@ -1,5 +1,5 @@
 import { default as Card } from "../common/Card.js";
-import { getCardColors } from "../common/color.js";
+import { getLightDarkColors } from "../common/color.js";
 import { kFormatter, wrapTextMultiline } from "../common/fmt.js";
 import { encodeHTML } from "../common/html.js";
 import { icons } from "../common/icons.js";
@@ -40,28 +40,15 @@ const renderGistCard = (gistData, options = {}) => {
   const { name, nameWithOwner, description, language, starsCount, forksCount } =
     gistData;
   const {
-    title_color,
-    icon_color,
-    text_color,
-    bg_color,
     theme = "default_repocard",
     border_radius,
-    border_color,
     show_owner = false,
     browser_rendering = false,
     hide_border = false,
   } = options;
 
-  // returns theme based colors with proper overrides and defaults
-  const { titleColor, textColor, iconColor, bgColor, borderColor } =
-    getCardColors({
-      title_color,
-      icon_color,
-      text_color,
-      bg_color,
-      border_color,
-      theme,
-    });
+  const { lightColors, darkColors } = getLightDarkColors({ ...options, theme });
+  const { textColor, iconColor } = lightColors;
 
   const desc = parseEmojis(description || "No description provided");
 
@@ -154,23 +141,30 @@ const renderGistCard = (gistData, options = {}) => {
     width: CARD_DEFAULT_WIDTH,
     height,
     border_radius,
-    colors: {
-      titleColor,
-      textColor,
-      iconColor,
-      bgColor,
-      borderColor,
-    },
+    colors: { light: lightColors, dark: darkColors },
   });
 
-  card.setCSS(`
+  card.setCSS({
+    light: `
     .description {
       font: 400 ${DESCRIPTION_FONT_SIZE}px 'Segoe UI', Ubuntu, Sans-Serif;fill: ${textColor};
       ${browser_rendering ? wrappedTextStyles(textColor) : ""}
     }
     .gray { font: 400 12px 'Segoe UI', Ubuntu, Sans-Serif; fill: ${textColor} }
     .icon { fill: ${iconColor} }
-  `);
+  `,
+    dark: darkColors
+      ? `
+      .description {
+        fill: ${darkColors.textColor};
+        ${browser_rendering ? wrappedTextStyles(darkColors.textColor) : ""}
+      }
+      .gray { fill: ${darkColors.textColor} }
+      .icon { fill: ${darkColors.iconColor} }
+    `
+      : null,
+  });
+
   card.setHideBorder(hide_border);
 
   return card.render(`
