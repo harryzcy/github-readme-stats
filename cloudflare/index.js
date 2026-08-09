@@ -6,13 +6,14 @@ import {
   wakatime,
 } from "@stats-organization/github-readme-stats-core";
 import { RequestAdapter, ResponseAdapter } from "./adapter.js";
-import { fromCore } from "./core.js";
+import { ensureConfig, fromCore } from "./core.js";
 import { handler as statusPatInfoHandler } from "../api/status/pat-info.js";
 import { handler as statusUpHandler } from "../api/status/up.js";
 
 export default {
   async fetch(request, env) {
     env.IS_CLOUDFLARE = "true"; // used to detect if running on Cloudflare
+    ensureConfig(env);
 
     const req = new RequestAdapter(request);
     const res = new ResponseAdapter();
@@ -65,7 +66,7 @@ export default {
     } else if (pathname === "/api/wakatime") {
       await fromCore(wakatime, req, res, env);
     } else if (pathname === "/api/status/pat-info") {
-      await statusPatInfoHandler(req, res, env);
+      await statusPatInfoHandler(req, res);
     } else if (pathname === "/api/status/up") {
       await statusUpHandler(req, res, env);
     } else {
