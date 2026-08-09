@@ -2,9 +2,17 @@
  * @file Tests for the status/up cloud function.
  */
 
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import {
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  jest,
+} from "@jest/globals";
 import axios from "axios";
 import MockAdapter from "axios-mock-adapter";
+import { loadConfigFromEnv } from "@stats-organization/github-readme-stats-core";
 import up, { RATE_LIMIT_SECONDS } from "../api/status/up.js";
 
 const mock = new MockAdapter(axios);
@@ -59,6 +67,15 @@ afterEach(() => {
 });
 
 describe("Test /api/status/up", () => {
+  beforeAll(() => {
+    // The retryer rotates through core's PAT pool and fails outright when it
+    // is empty. Core reads the pool from process.env when it is first
+    // imported, which has already happened, so reload it from the patched env.
+    process.env.PAT_1 = "dummyPAT1";
+    process.env.PAT_2 = "dummyPAT2";
+    loadConfigFromEnv(process.env);
+  });
+
   it("should return `true` if request was successful", async () => {
     mock.onPost("https://api.github.com/graphql").replyOnce(200, successData);
 

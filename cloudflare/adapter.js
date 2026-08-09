@@ -36,11 +36,20 @@ export class ResponseAdapter {
   }
 
   /**
-   * @param {string} body response body
+   * Mirrors the express-like `send` upstream's router provides: objects are
+   * serialised as JSON, anything else is coerced to a string.
+   *
+   * @param {any} body response body
    * @returns {void}
    */
   send(body) {
-    this.body = body;
+    if (typeof body === "object" && body !== null) {
+      this.headers["Content-Type"] = "application/json";
+      this.body = JSON.stringify(body);
+      return;
+    }
+
+    this.body = typeof body === "string" ? body : String(body);
   }
 
   /**

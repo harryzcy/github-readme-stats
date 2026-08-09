@@ -7,9 +7,11 @@
  * @description This function is currently rate limited to 1 request per 5 minutes.
  */
 
-import { request } from "../../src/common/http.js";
-import retryer from "../../src/common/retryer.js";
-import { logger } from "../../src/common/log.js";
+import {
+  logger,
+  request,
+  retryer,
+} from "@stats-organization/github-readme-stats-core";
 
 export const RATE_LIMIT_SECONDS = 60 * 5; // 1 request per 5 minutes
 
@@ -18,10 +20,9 @@ export const RATE_LIMIT_SECONDS = 60 * 5; // 1 request per 5 minutes
  *
  * @param {any} variables Fetcher variables.
  * @param {string} token GitHub token.
- * @param {boolean=} useFetch Use fetch instead of axios.
  * @returns {Promise<import('axios').AxiosResponse>} The response.
  */
-const uptimeFetcher = (variables, token, useFetch) => {
+const uptimeFetcher = (variables, token) => {
   return request(
     {
       query: `
@@ -36,7 +37,6 @@ const uptimeFetcher = (variables, token, useFetch) => {
     {
       Authorization: `bearer ${token}`,
     },
-    useFetch,
   );
 };
 
@@ -78,10 +78,9 @@ const shieldsUptimeBadge = (up) => {
  *
  * @param {any} req The request.
  * @param {any} res The response.
- * @param {{[key: string]: string}} env The environment variables.
  * @returns {Promise<void>} Nothing.
  */
-export const handler = async (req, res, env) => {
+export const handler = async (req, res) => {
   let { type } = req.query;
   type = type ? type.toLowerCase() : "boolean";
 
@@ -90,7 +89,7 @@ export const handler = async (req, res, env) => {
   try {
     let PATsValid = true;
     try {
-      await retryer(uptimeFetcher, {}, env);
+      await retryer(uptimeFetcher, {});
     } catch (err) {
       // Resolve eslint no-unused-vars
       err;
@@ -126,4 +125,4 @@ export const handler = async (req, res, env) => {
   }
 };
 
-export default async (req, res) => handler(req, res, process.env);
+export default async (req, res) => handler(req, res);
