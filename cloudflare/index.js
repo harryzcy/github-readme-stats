@@ -56,15 +56,15 @@ export default {
     }
 
     if (pathname === "/api") {
-      await fromCore(api, req, res, env);
+      await fromCore(api, "username", req, res, env);
     } else if (pathname === "/api/gist") {
-      await fromCore(gist, req, res, env);
+      await fromCore(gist, "gist", req, res, env);
     } else if (pathname === "/api/pin") {
-      await fromCore(pin, req, res, env);
+      await fromCore(pin, "username", req, res, env);
     } else if (pathname === "/api/top-langs") {
-      await fromCore(topLangs, req, res, env);
+      await fromCore(topLangs, "username", req, res, env);
     } else if (pathname === "/api/wakatime") {
-      await fromCore(wakatime, req, res, env);
+      await fromCore(wakatime, "wakatime", req, res, env);
     } else if (pathname === "/api/status/pat-info") {
       await statusPatInfoHandler(req, res);
     } else if (pathname === "/api/status/up") {

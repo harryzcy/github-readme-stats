@@ -4,6 +4,9 @@ compatibility_date = "2025-05-05"
 compatibility_flags = [ "nodejs_compat" ]
 
 [vars]
+# Usernames refused by the access guard. Mostly readme placeholders people
+# paste without editing, which would otherwise spend GitHub API quota.
+BLACKLIST = "renovate-bot,technote-space,sw-yx,YourUsername,[YourUsername]"
 
 [observability]
 [observability.logs]
