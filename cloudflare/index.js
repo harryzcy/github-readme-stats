@@ -1,7 +1,10 @@
-import { pin, topLangs } from "@stats-organization/github-readme-stats-core";
+import {
+  gist,
+  pin,
+  topLangs,
+} from "@stats-organization/github-readme-stats-core";
 import { RequestAdapter, ResponseAdapter } from "./adapter.js";
 import { fromCore } from "./core.js";
-import { handler as gistHandler } from "../api/gist.js";
 import { handler as indexHandler } from "../api/index.js";
 import wakatimeHandler from "../api/wakatime.js";
 import { handler as statusPatInfoHandler } from "../api/status/pat-info.js";
@@ -54,7 +57,7 @@ export default {
     if (pathname === "/api") {
       await indexHandler(req, res, env);
     } else if (pathname === "/api/gist") {
-      await gistHandler(req, res, env);
+      await fromCore(gist, req, res, env);
     } else if (pathname === "/api/pin") {
       await fromCore(pin, req, res, env);
     } else if (pathname === "/api/top-langs") {
