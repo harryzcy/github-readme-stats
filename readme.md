@@ -44,7 +44,7 @@ Parameters are compatible with upstream. See [Compatibility Notes](docs/fork.md#
 
 - ...your top languages...:
 
-  ![Top Langs](https://github-readme-stats.zcy.dev/api/top-langs/?username=harryzcy&langs_count=4)
+  ![Top Langs](https://github-readme-stats.zcy.dev/api/top-langs?username=harryzcy&langs_count=4)
 
 - ...and development time:
 
@@ -52,7 +52,7 @@ Parameters are compatible with upstream. See [Compatibility Notes](docs/fork.md#
 
 - Pin more than 6 repos in your GitHub profile:
 
-  [![Readme Card](https://github-readme-stats.zcy.dev/api/pin/?username=harryzcy&repo=github-readme-stats)](https://github.com/harryzcy/github-readme-stats)
+  [![Readme Card](https://github-readme-stats.zcy.dev/api/pin?username=harryzcy&repo=github-readme-stats)](https://github.com/harryzcy/github-readme-stats)
 
 - Pin Gists in your GitHub profile:
 
@@ -60,7 +60,7 @@ Parameters are compatible with upstream. See [Compatibility Notes](docs/fork.md#
 
 - Customize all the cards:
 
-  [![GitHub stats](https://github-readme-stats.zcy.dev/api/?username=harryzcy&show_icons=true&theme=calm&rank_icon=github&include_all_commits=true&disable_animations=true&number_format=long)](https://github-readme-stats.zcy.dev/api/?username=harryzcy&show_icons=true&theme=calm&rank_icon=github&include_all_commits=true&disable_animations=true&number_format=long)
+  [![GitHub stats](https://github-readme-stats.zcy.dev/api?username=harryzcy&show_icons=true&theme=calm&rank_icon=github&include_all_commits=true&disable_animations=true&number_format=long)](https://github-readme-stats.zcy.dev/api?username=harryzcy&show_icons=true&theme=calm&rank_icon=github&include_all_commits=true&disable_animations=true&number_format=long)
 
 ## Advanced Customization
 
