@@ -10,6 +10,22 @@ axios.defaults.adapter = "fetch";
 let configured = false;
 
 /**
+ * Make core's config -- the PAT pool in particular -- available to any handler
+ * that needs it. Core loads it from `process.env` at import time, which is
+ * empty here, so it has to be reloaded from the Worker's env bindings.
+ *
+ * @param {object} env Environment variables.
+ * @returns {void}
+ */
+export const ensureConfig = (env) => {
+  if (!configured) {
+    // env is constant for the lifetime of a deployment, so load it once.
+    loadConfigFromEnv(env);
+    configured = true;
+  }
+};
+
+/**
  * Run an upstream core card handler and write its result into the response
  * adapter, so the shared header handling in index.js still applies.
  *
@@ -20,11 +36,7 @@ let configured = false;
  * @returns {Promise<void>}
  */
 export const fromCore = async (handler, req, res, env) => {
-  if (!configured) {
-    // env is constant for the lifetime of a deployment, so load it once.
-    loadConfigFromEnv(env);
-    configured = true;
-  }
+  ensureConfig(env);
 
   // The second argument is a per-user PAT, which is backed by Postgres
   // upstream. We don't have that, so core falls back to the PAT_n pool.

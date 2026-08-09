@@ -7,10 +7,12 @@
  * @description This function is currently rate limited to 1 request per 5 minutes.
  */
 
-import process from "node:process";
-import { request } from "../../src/common/http.js";
-import { logger } from "../../src/common/log.js";
-import { dateDiff } from "../../src/common/ops.js";
+import {
+  dateDiff,
+  getConfig,
+  logger,
+  request,
+} from "@stats-organization/github-readme-stats-core";
 
 export const RATE_LIMIT_SECONDS = 60 * 5; // 1 request per 5 minutes
 
@@ -19,10 +21,9 @@ export const RATE_LIMIT_SECONDS = 60 * 5; // 1 request per 5 minutes
  *
  * @param {any} variables Fetcher variables.
  * @param {string} token GitHub token.
- * @param {boolean} useFetch Use fetch instead of axios.
  * @returns {Promise<import('axios').AxiosResponse>} The response.
  */
-const uptimeFetcher = (variables, token, useFetch) => {
+const uptimeFetcher = (variables, token) => {
   return request(
     {
       query: `
@@ -37,12 +38,11 @@ const uptimeFetcher = (variables, token, useFetch) => {
     {
       Authorization: `bearer ${token}`,
     },
-    useFetch,
   );
 };
 
-const getAllPATs = (env) => {
-  return Object.keys(env).filter((key) => /PAT_\d*$/.exec(key));
+const getAllPATs = () => {
+  return getConfig().pats;
 };
 
 /**
@@ -55,17 +55,16 @@ const getAllPATs = (env) => {
  *
  * @param {Fetcher} fetcher The fetcher function.
  * @param {any} variables Fetcher variables.
- * @param {{[key: string]: string}} env The environment variables.
  * @returns {Promise<PATInfo>} The response.
  */
-const getPATInfo = async (fetcher, variables, env) => {
+const getPATInfo = async (fetcher, variables) => {
   /** @type {Record<string, any>} */
   const details = {};
-  const PATs = getAllPATs(env);
+  const PATs = getAllPATs();
 
   for (const pat of PATs) {
     try {
-      const response = await fetcher(variables, env[pat]);
+      const response = await fetcher(variables, pat.value);
       const errors = response.data.errors;
       const hasErrors = Boolean(errors);
       const errorType = errors?.[0]?.type;
@@ -75,7 +74,7 @@ const getPATInfo = async (fetcher, variables, env) => {
 
       // Store PATs with errors.
       if (hasErrors && errorType !== "RATE_LIMITED") {
-        details[pat] = {
+        details[pat.name] = {
           status: "error",
           error: {
             type: errors[0].type,
@@ -86,13 +85,13 @@ const getPATInfo = async (fetcher, variables, env) => {
       } else if (isRateLimited) {
         const date1 = new Date();
         const date2 = new Date(response.data?.data?.rateLimit?.resetAt);
-        details[pat] = {
+        details[pat.name] = {
           status: "exhausted",
           remaining: 0,
           resetIn: dateDiff(date2, date1) + " minutes",
         };
       } else {
-        details[pat] = {
+        details[pat.name] = {
           status: "valid",
           remaining: response.data.data.rateLimit.remaining,
         };
@@ -101,11 +100,11 @@ const getPATInfo = async (fetcher, variables, env) => {
       // Store the PAT if it is expired.
       const errorMessage = err.response?.data?.message?.toLowerCase();
       if (errorMessage === "bad credentials") {
-        details[pat] = {
+        details[pat.name] = {
           status: "expired",
         };
       } else if (errorMessage === "sorry. your account was suspended.") {
-        details[pat] = {
+        details[pat.name] = {
           status: "suspended",
         };
       } else {
@@ -140,14 +139,13 @@ const getPATInfo = async (fetcher, variables, env) => {
  *
  * @param {any} _ The request.
  * @param {any} res The response.
- * @param {{[key: string]: string}} env The environment variables.
  * @returns {Promise<void>} The response.
  */
-export const handler = async (_, res, env) => {
+export const handler = async (_, res) => {
   res.setHeader("Content-Type", "application/json");
   try {
     // Add header to prevent abuse.
-    const PATsInfo = await getPATInfo(uptimeFetcher, {}, env);
+    const PATsInfo = await getPATInfo(uptimeFetcher, {});
     if (PATsInfo) {
       res.setHeader(
         "Cache-Control",
@@ -163,4 +161,4 @@ export const handler = async (_, res, env) => {
   }
 };
 
-export default async (req, res) => handler(req, res, process.env);
+export default async (req, res) => handler(req, res);

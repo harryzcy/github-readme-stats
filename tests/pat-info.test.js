@@ -15,6 +15,7 @@ import {
 } from "@jest/globals";
 import axios from "axios";
 import MockAdapter from "axios-mock-adapter";
+import { loadConfigFromEnv } from "@stats-organization/github-readme-stats-core";
 import patInfo, { RATE_LIMIT_SECONDS } from "../api/status/pat-info.js";
 
 const mock = new MockAdapter(axios);
@@ -78,6 +79,10 @@ describe("Test /api/status/pat-info", () => {
     process.env.PAT_2 = "testPAT2";
     process.env.PAT_3 = "testPAT3";
     process.env.PAT_4 = "testPAT4";
+
+    // Core snapshots its config when it is first imported, which happens
+    // before this runs, so it has to be reloaded from the patched env.
+    loadConfigFromEnv(process.env);
   });
 
   it("should return only 'validPATs' if all PATs are valid", async () => {
