@@ -16,28 +16,31 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.1
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node
         uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
-          cache: npm
+          cache: pnpm
 
       - name: Install & Test
         run: |
-          npm ci
-          npm run test
+          pnpm install --frozen-lockfile
+          pnpm run test
 
       - name: Run ESLint
         run: |
-          npm run lint
+          pnpm run lint
 
       - name: Run bench tests
         run: |
-          npm run bench
+          pnpm run bench
 
       - name: Run Prettier
         run: |
-          npm run format:check
+          pnpm run format:check
 
       - name: Code Coverage
         uses: codecov/codecov-action@v7
