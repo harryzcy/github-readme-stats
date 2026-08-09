@@ -68,13 +68,14 @@ export default {
     } else if (pathname === "/api/status/pat-info") {
       await statusPatInfoHandler(req, res);
     } else if (pathname === "/api/status/up") {
-      await statusUpHandler(req, res, env);
+      await statusUpHandler(req, res);
     } else {
       return new Response("not found", { status: 404 });
     }
-    if (pathname === "/api/status/up") {
-      res.setHeader("Cache-Control", "max-age=0"); // no cache
-    } else {
+
+    // The status endpoints pick their own cache lifetime; only fall back to
+    // the default for handlers that didn't set one.
+    if (!res.headers["Cache-Control"]) {
       res.setHeader("Cache-Control", "max-age=600"); // 10 min
     }
 
