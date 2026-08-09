@@ -1,11 +1,14 @@
 import axios from "axios";
 import { loadConfigFromEnv } from "@stats-organization/github-readme-stats-core";
 
-// Core issues its GitHub requests through axios. Axios would resolve to its
-// fetch adapter here anyway, since neither the http nor the xhr adapter is
-// available under workerd, but pinning it keeps the choice explicit rather
-// than dependent on axios' adapter probing order.
+// Axios picks fetch here anyway -- http and xhr are unavailable under
+// workerd -- so this only makes the choice explicit.
 axios.defaults.adapter = "fetch";
+
+// Core hardcodes the successor project's issue tracker in error cards, with
+// no option to change it. No-ops if upstream ever changes the string.
+const CORE_ISSUE_URL = "https://tinyurl.com/github-stats";
+const ISSUE_URL = "https://github.com/harryzcy/github-readme-stats";
 
 let configured = false;
 
@@ -43,5 +46,5 @@ export const fromCore = async (handler, req, res, env) => {
   const { content } = await handler(req.query, null);
 
   res.setHeader("Content-Type", "image/svg+xml");
-  res.send(content);
+  res.send(content.replace(CORE_ISSUE_URL, ISSUE_URL));
 };
