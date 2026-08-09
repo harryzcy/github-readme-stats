@@ -2,7 +2,7 @@
   <img src="docs/appIcon.svg" width="100px" alt="GitHub Readme Stats Logo" />
   <h1>GitHub Readme Stats</h1>
   <p>Dynamically generate GitHub stats for your READMEs.</p>
-<a href="https://github-readme-stats.zcy.dev/api?username=harryzcy"><img src="https://github-readme-stats.zcy.dev/api?username=harryzcy"></a>
+<a href="https://github-readme-stats.zcy.dev/api?username=anuraghazra"><img src="https://github-readme-stats.zcy.dev/api?username=anuraghazra"></a>
 </div>
 
 This is a [Cloudflare Workers](https://workers.cloudflare.com/) deployment of [GitHub Stats Extended](https://github.com/stats-organization/github-stats-extended), the [actively maintained successor](docs/fork.md) to [github-readme-stats](https://github.com/anuraghazra/github-readme-stats). Card rendering comes from upstream's `@stats-organization/github-readme-stats-core` package, so output matches the upstream instance; this repository adds the Workers runtime.
@@ -20,7 +20,7 @@ This is a [Cloudflare Workers](https://workers.cloudflare.com/) deployment of [G
 
 - Copy and paste this into your markdown:
   ```markdown
-  [![GitHub stats](https://github-readme-stats.zcy.dev/api?username=harryzcy)](https://github.com/harryzcy/github-readme-stats)
+  [![GitHub stats](https://github-readme-stats.zcy.dev/api?username=anuraghazra)](https://github.com/harryzcy/github-readme-stats)
   ```
 - Change the `?username=` value to your GitHub username.
 - Done!
@@ -40,11 +40,11 @@ Parameters are compatible with upstream. See [Compatibility Notes](docs/fork.md#
 
 - Show your GitHub statistics:
 
-  ![GitHub stats](https://github-readme-stats.zcy.dev/api?username=harryzcy)
+  ![GitHub stats](https://github-readme-stats.zcy.dev/api?username=anuraghazra)
 
 - ...your top languages...:
 
-  ![Top Langs](https://github-readme-stats.zcy.dev/api/top-langs?username=harryzcy&langs_count=4)
+  ![Top Langs](https://github-readme-stats.zcy.dev/api/top-langs?username=anuraghazra&langs_count=4)
 
 - ...and development time:
 
@@ -52,7 +52,7 @@ Parameters are compatible with upstream. See [Compatibility Notes](docs/fork.md#
 
 - Pin more than 6 repos in your GitHub profile:
 
-  [![Readme Card](https://github-readme-stats.zcy.dev/api/pin?username=harryzcy&repo=github-readme-stats)](https://github.com/harryzcy/github-readme-stats)
+  [![Readme Card](https://github-readme-stats.zcy.dev/api/pin?username=anuraghazra&repo=github-readme-stats)](https://github.com/anuraghazra/github-readme-stats)
 
 - Pin Gists in your GitHub profile:
 
@@ -60,7 +60,7 @@ Parameters are compatible with upstream. See [Compatibility Notes](docs/fork.md#
 
 - Customize all the cards:
 
-  [![GitHub stats](https://github-readme-stats.zcy.dev/api?username=harryzcy&show_icons=true&theme=calm&rank_icon=github&include_all_commits=true&disable_animations=true&number_format=long)](https://github-readme-stats.zcy.dev/api?username=harryzcy&show_icons=true&theme=calm&rank_icon=github&include_all_commits=true&disable_animations=true&number_format=long)
+  [![GitHub stats](https://github-readme-stats.zcy.dev/api?username=anuraghazra&show_icons=true&theme=calm&rank_icon=github&include_all_commits=true&custom_title=Anurag's+Stats&disable_animations=true&number_format=long&show=prs_merged_percentage,prs_reviewed)](https://github-readme-stats.zcy.dev/api?username=anuraghazra&show_icons=true&theme=calm&rank_icon=github&include_all_commits=true&custom_title=Anurag's+Stats&disable_animations=true&number_format=long&show=prs_merged_percentage,prs_reviewed)
 
 ## Advanced Customization
 
