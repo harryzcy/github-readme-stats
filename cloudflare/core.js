@@ -7,8 +7,9 @@ axios.defaults.adapter = "fetch";
 
 // Core hardcodes the successor project's issue tracker in error cards, with
 // no option to change it. No-ops if upstream ever changes the string.
+// Kept as a bare repo reference: the full URL overflows the fixed-width card.
 const CORE_ISSUE_URL = "https://tinyurl.com/github-stats";
-const ISSUE_URL = "https://github.com/harryzcy/github-readme-stats";
+const ISSUE_REF = "harryzcy/github-readme-stats";
 
 let configured = false;
 
@@ -46,5 +47,5 @@ export const fromCore = async (handler, req, res, env) => {
   const { content } = await handler(req.query, null);
 
   res.setHeader("Content-Type", "image/svg+xml");
-  res.send(content.replace(CORE_ISSUE_URL, ISSUE_URL));
+  res.send(content.replace(CORE_ISSUE_URL, ISSUE_REF));
 };
