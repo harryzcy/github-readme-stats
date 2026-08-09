@@ -1,0 +1,21 @@
+{
+  "name": "github-readme-stats-cloudflare",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@stats-organization/github-readme-stats-core": "^2.1.5",
+    "axios": "catalog:"
+  },
+  "devDependencies": {
+    "wrangler": "^4.118.0"
+  }
+}
