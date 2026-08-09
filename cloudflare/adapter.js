@@ -7,15 +7,10 @@ export class RequestAdapter {
   constructor(request) {
     this.request = request;
 
-    const url = new URL(request.url);
-    const queryString = url.search.slice(1).split("&");
-
-    queryString.forEach((item) => {
-      const kv = item.split("=");
-      if (kv[0]) {
-        this.params[kv[0]] = kv[1] || true;
-      }
-    });
+    // Matches how upstream's express/vercel deployment parses the query
+    // string, so core handlers see identical input: percent-decoded values,
+    // and a valueless parameter as "" rather than a boolean.
+    this.params = Object.fromEntries(new URL(request.url).searchParams);
   }
 
   /**
