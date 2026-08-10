@@ -69,9 +69,6 @@ importers:
       eslint-plugin-jsdoc:
         specifier: ^63.3.3
         version: 63.3.3(eslint@10.8.1(jiti@2.7.0))
-      express:
-        specifier: ^5.2.1
-        version: 5.2.1
       globals:
         specifier: ^17.9.0
         version: 17.9.0
