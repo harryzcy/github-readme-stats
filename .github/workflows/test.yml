@@ -28,7 +28,11 @@ jobs:
       - name: Install & Test
         run: |
           pnpm install --frozen-lockfile
+          pnpm run build:packages
           pnpm run test
+
+      - name: Test packages
+        run: pnpm --filter './packages/*' run test -- --run
 
       - name: Run ESLint
         run: |

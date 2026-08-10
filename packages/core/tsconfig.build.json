@@ -1,0 +1,13 @@
+{
+  "extends": ["./tsconfig.json"],
+  "include": ["src"],
+  "compilerOptions": {
+    "rootDir": "./src",
+    "declaration": true,
+    "declarationMap": true,
+    "customConditions": [],
+
+    // Typecheck is performed in a separate task
+    "noCheck": true
+  }
+}

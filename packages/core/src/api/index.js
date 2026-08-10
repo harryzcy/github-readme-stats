@@ -1,0 +1,163 @@
+import { renderStatsCard } from "../cards/stats.js";
+import { findInvalidColorParam, pickColorParams } from "../common/color.js";
+import {
+  MissingParamError,
+  retrieveSecondaryMessage,
+} from "../common/error.js";
+import { parseArray, parseBoolean } from "../common/ops.js";
+import { renderError } from "../common/render.js";
+import { fetchStats } from "../fetchers/stats.js";
+import { isLocaleAvailable } from "../translations.js";
+
+// @ts-ignore
+export default async (
+  {
+    username,
+    repo,
+    owner,
+    hide,
+    hide_title,
+    hide_border,
+    card_width,
+    hide_rank,
+    show_icons,
+    include_all_commits,
+    commits_year,
+    line_height,
+    text_bold,
+    exclude_repo,
+    custom_title,
+    locale,
+    disable_animations,
+    border_radius,
+    number_format,
+    role,
+    number_precision,
+    rank_icon,
+    show,
+    ...remainingParams
+  },
+  pat = null,
+) => {
+  const colorParams = pickColorParams(remainingParams);
+
+  const invalidColorInput = findInvalidColorParam(colorParams);
+  if (invalidColorInput) {
+    return {
+      status: "error - permanent",
+      content: renderError({
+        message: "Something went wrong",
+        secondaryMessage: `Invalid color input for parameter "${invalidColorInput}"`,
+      }),
+    };
+  }
+
+  if (locale && !isLocaleAvailable(locale)) {
+    return {
+      status: "error - permanent",
+      content: renderError({
+        message: "Something went wrong",
+        secondaryMessage: "Language not found",
+        renderOptions: colorParams,
+      }),
+    };
+  }
+
+  const safePattern = /^[-\w/.,]+$/;
+  if (
+    (username && !safePattern.test(username)) ||
+    (repo && !safePattern.test(repo)) ||
+    (owner && !safePattern.test(owner))
+  ) {
+    return {
+      status: "error - permanent",
+      content: renderError({
+        message: "Something went wrong",
+        secondaryMessage:
+          "Username, repository or owner contains unsafe characters",
+        renderOptions: colorParams,
+      }),
+    };
+  }
+
+  try {
+    const showStats = parseArray(show);
+    const repoOwner = parseArray(owner);
+    let repository = parseArray(repo);
+    repository = repository.map((repo) =>
+      repo.includes("/") ? repo : `${username}/${repo}`,
+    );
+
+    const stats = await fetchStats(
+      username,
+      parseBoolean(include_all_commits),
+      parseArray(exclude_repo),
+      showStats.includes("prs_merged") ||
+        showStats.includes("prs_merged_percentage"),
+      showStats.includes("discussions_started"),
+      showStats.includes("discussions_answered"),
+      parseInt(commits_year, 10),
+      repository,
+      repoOwner,
+      showStats.includes("prs_authored"),
+      showStats.includes("prs_commented"),
+      showStats.includes("prs_reviewed"),
+      showStats.includes("issues_authored"),
+      showStats.includes("issues_commented"),
+      parseArray(role),
+      pat,
+    );
+
+    return {
+      status: "success",
+      content: renderStatsCard(
+        stats,
+        {
+          ...colorParams,
+          hide: parseArray(hide),
+          show_icons: parseBoolean(show_icons),
+          hide_title: parseBoolean(hide_title),
+          hide_border: parseBoolean(hide_border),
+          card_width: parseInt(card_width, 10),
+          hide_rank: parseBoolean(hide_rank),
+          include_all_commits: parseBoolean(include_all_commits),
+          commits_year: parseInt(commits_year, 10),
+          line_height,
+          text_bold: parseBoolean(text_bold),
+          custom_title,
+          border_radius,
+          number_format,
+          number_precision: parseInt(number_precision, 10),
+          locale: locale ? locale.toLowerCase() : null,
+          disable_animations: parseBoolean(disable_animations),
+          rank_icon,
+          show: showStats,
+        },
+        username,
+        repository,
+        repoOwner,
+      ),
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        status: "error - temporary",
+        content: renderError({
+          message: err.message,
+          secondaryMessage: retrieveSecondaryMessage(err),
+          renderOptions: {
+            ...colorParams,
+            show_repo_link: !(err instanceof MissingParamError),
+          },
+        }),
+      };
+    }
+    return {
+      status: "error - temporary",
+      content: renderError({
+        message: "An unknown error occurred",
+        renderOptions: colorParams,
+      }),
+    };
+  }
+};

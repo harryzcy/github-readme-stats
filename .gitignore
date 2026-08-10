@@ -15,3 +15,9 @@ vercel_token
 
 .vercel
 .wrangler
+
+# build output (matches upstream)
+.turbo
+build
+build-ts
+*.tsbuildinfo

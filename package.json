@@ -29,7 +29,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "npx eslint --max-warnings 0 \"./src/**/*.js\" \"./scripts/**/*.js\" \"./tests/**/*.js\" \"./api/**/*.js\" \"./themes/**/*.js\"",
-    "bench": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.bench.config.js"
+    "bench": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.bench.config.js",
+    "build:packages": "turbo run build --filter=./packages/*",
+    "typecheck": "turbo run typecheck"
   },
   "author": "Anurag Hazra",
   "license": "MIT",
@@ -49,10 +51,12 @@
     "jest-environment-jsdom": "^30.4.1",
     "js-yaml": "^5.2.3",
     "lint-staged": "^17.3.0",
-    "prettier": "^3.9.6"
+    "prettier": "^3.9.6",
+    "turbo": "2.10.5",
+    "typescript": "6.0.3"
   },
   "dependencies": {
-    "@stats-organization/github-readme-stats-core": "^2.1.5",
+    "@stats-organization/github-readme-stats-core": "workspace:^",
     "axios": "^1.19.0",
     "dotenv": "^17.4.2",
     "emoji-name-map": "^2.0.3",
