@@ -3,7 +3,13 @@ export default {
   transform: {},
   testEnvironment: "jsdom",
   coverageProvider: "v8",
-  testPathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/tests/e2e/"],
+  // apps/* and packages/* carry upstream's vitest benches; not jest's to run.
+  testPathIgnorePatterns: [
+    "<rootDir>/node_modules/",
+    "<rootDir>/tests/e2e/",
+    "<rootDir>/packages/",
+    "<rootDir>/apps/",
+  ],
   modulePathIgnorePatterns: ["<rootDir>/node_modules/", "<rootDir>/tests/e2e/"],
   coveragePathIgnorePatterns: [
     "<rootDir>/node_modules/",
