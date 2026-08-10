@@ -14,6 +14,8 @@ const compat = new FlatCompat({
 });
 
 export default [
+  // wrangler's local dev scratch; gitignored, but flat config does not read .gitignore
+  { ignores: ["**/.wrangler/**", "**/build/**"] },
   ...compat.extends("prettier"),
   {
     languageOptions: {
