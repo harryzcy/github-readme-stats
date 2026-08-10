@@ -1,3 +1,5 @@
+import statusPatInfoHandler from "@stats-organization/github-readme-stats-backend/api-renamed/status/pat-info.js";
+import statusUpHandler from "@stats-organization/github-readme-stats-backend/api-renamed/status/up.js";
 import {
   api,
   gist,
@@ -5,10 +7,9 @@ import {
   topLangs,
   wakatime,
 } from "@stats-organization/github-readme-stats-core";
+
 import { RequestAdapter, ResponseAdapter } from "./adapter.js";
 import { ensureConfig, fromCore } from "./core.js";
-import statusPatInfoHandler from "@stats-organization/github-readme-stats-backend/api-renamed/status/pat-info.js";
-import statusUpHandler from "@stats-organization/github-readme-stats-backend/api-renamed/status/up.js";
 
 export default {
   async fetch(request, env) {
