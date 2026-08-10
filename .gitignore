@@ -1,34 +1,41 @@
-.vercel
-.env
 node_modules
-*.lock
-.idea/
+
+# OS
+.DS_Store
+
+# Project
 coverage
-benchmarks
-vercel_token
 
-# IDE
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
-*.code-workspace
-
-.vercel
-.wrangler
-
+apps/backend/.vercel
+apps/backend/.env
+apps/backend/node_modules
+apps/backend/*.lock
+apps/backend/coverage
+apps/backend/benchmarks
+apps/backend/vercel_token
 apps/backend-copy
 
-# build output (matches upstream)
+apps/frontend/.env
+
+
 .turbo
 build
 build-ts
 *.tsbuildinfo
 
-apps/frontend/.env
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.code-workspace
 
-# Playwright (matches upstream)
+# Playwright
 test-results/
 playwright-report/
 blob-report/
 playwright/.cache/
 playwright/.auth/
+
+# ours
+.wrangler

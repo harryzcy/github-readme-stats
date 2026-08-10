@@ -1,0 +1,14 @@
+{
+  "$schema": "./node_modules/knip/schema.json",
+  "vitest": {
+    "entry": ["tests/**/*.{test,test-d,bench}.{js,ts}"]
+  },
+  "workspaces": {
+    "apps/backend": {
+      "entry": ["api-renamed/*.js", "express.js"]
+    },
+    "apps/frontend": {
+      "entry": ["src/wakatime-override.ts"]
+    }
+  }
+}
