@@ -7,8 +7,8 @@ name: Sync Upstream
 
 on:
   schedule:
-    # Mondays, 06:00 UTC. Upstream merges most days, so daily would be noise.
-    - cron: "0 6 * * 1"
+    # Fridays, 06:00 UTC. Upstream merges most days, so daily would be noise.
+    - cron: "0 6 * * 5"
   workflow_dispatch:
 
 permissions:
