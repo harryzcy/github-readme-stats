@@ -5,27 +5,79 @@ updates:
     directory: "/"
     schedule:
       interval: daily
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 20
     commit-message:
       prefix: "build(deps)"
       prefix-development: "build(deps-dev)"
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+    groups:
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "react-*"
+          - "@types/react"
+          - "@types/react-dom"
+      redux:
+        patterns:
+          - "redux"
+          - "@reduxjs/*"
+          - "react-redux"
+      vite:
+        patterns:
+          - "vite"
+          - "@vitejs/*"
+      tailwind:
+        patterns:
+          - "tailwindcss"
+          - "@tailwindcss/*"
+          - "daisyui"
+      vitest:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+      eslint:
+        patterns:
+          - "eslint"
+          - "@eslint/*"
+          - "eslint-*"
+          - "typescript-eslint"
+      typescript:
+        patterns:
+          - "typescript"
+          - "@types/*"
+      playwright:
+        patterns:
+          - "@playwright/*"
+      axios:
+        patterns:
+          - "axios"
+          - "axios-*"
 
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: daily
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 20
     commit-message:
       prefix: "ci(deps)"
       prefix-development: "ci(deps-dev)"
+    cooldown:
+      default-days: 7
 
   # Maintain dependencies for Devcontainers
   - package-ecosystem: devcontainers
     directory: "/"
     schedule:
-      interval: weekly
-    open-pull-requests-limit: 10
+      interval: daily
+    open-pull-requests-limit: 20
     commit-message:
       prefix: "build(deps)"
       prefix-development: "build(deps-dev)"
+    cooldown:
+      default-days: 7
