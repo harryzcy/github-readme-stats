@@ -16,6 +16,8 @@ vercel_token
 .vercel
 .wrangler
 
+apps/backend-copy
+
 # build output (matches upstream)
 .turbo
 build

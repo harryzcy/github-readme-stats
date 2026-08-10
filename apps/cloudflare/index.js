@@ -7,8 +7,8 @@ import {
 } from "@stats-organization/github-readme-stats-core";
 import { RequestAdapter, ResponseAdapter } from "./adapter.js";
 import { ensureConfig, fromCore } from "./core.js";
-import { handler as statusPatInfoHandler } from "../../api/status/pat-info.js";
-import { handler as statusUpHandler } from "../../api/status/up.js";
+import statusPatInfoHandler from "@stats-organization/github-readme-stats-backend/api-renamed/status/pat-info.js";
+import statusUpHandler from "@stats-organization/github-readme-stats-backend/api-renamed/status/up.js";
 
 export default {
   async fetch(request, env) {
