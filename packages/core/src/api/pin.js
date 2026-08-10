@@ -1,0 +1,126 @@
+import { renderRepoCard } from "../cards/repo.js";
+import { findInvalidColorParam, pickColorParams } from "../common/color.js";
+import {
+  MissingParamError,
+  retrieveSecondaryMessage,
+} from "../common/error.js";
+import { parseArray, parseBoolean } from "../common/ops.js";
+import { renderError } from "../common/render.js";
+import { fetchRepo } from "../fetchers/repo.js";
+import { isLocaleAvailable } from "../translations.js";
+
+// @ts-ignore
+export default async (
+  {
+    username,
+    repo,
+    hide_border,
+    card_width,
+    show_owner,
+    browser_rendering,
+    show,
+    show_icons,
+    number_format,
+    text_bold,
+    line_height,
+    locale,
+    border_radius,
+    description_lines_count,
+    ...remainingParams
+  },
+  pat = null,
+) => {
+  const colorParams = pickColorParams(remainingParams);
+
+  const invalidColorInput = findInvalidColorParam(colorParams);
+  if (invalidColorInput) {
+    return {
+      status: "error - permanent",
+      content: renderError({
+        message: "Something went wrong",
+        secondaryMessage: `Invalid color input for parameter "${invalidColorInput}"`,
+      }),
+    };
+  }
+
+  if (locale && !isLocaleAvailable(locale)) {
+    return {
+      status: "error - permanent",
+      content: renderError({
+        message: "Something went wrong",
+        secondaryMessage: "Language not found",
+        renderOptions: colorParams,
+      }),
+    };
+  }
+
+  const safePattern = /^[-\w/.,]+$/;
+  if (
+    (username && !safePattern.test(username)) ||
+    (repo && !safePattern.test(repo))
+  ) {
+    return {
+      status: "error - permanent",
+      content: renderError({
+        message: "Something went wrong",
+        secondaryMessage: "Username or repository contains unsafe characters",
+        renderOptions: colorParams,
+      }),
+    };
+  }
+
+  try {
+    const showStats = parseArray(show);
+    const repoData = await fetchRepo(
+      username,
+      repo,
+      showStats.includes("prs_authored"),
+      showStats.includes("prs_commented"),
+      showStats.includes("prs_reviewed"),
+      showStats.includes("issues_authored"),
+      showStats.includes("issues_commented"),
+      pat,
+    );
+
+    return {
+      status: "success",
+      content: renderRepoCard(repoData, {
+        ...colorParams,
+        hide_border: parseBoolean(hide_border),
+        border_radius,
+        card_width_input: parseInt(card_width, 10),
+        show_owner: parseBoolean(show_owner),
+        browser_rendering: parseBoolean(browser_rendering),
+        show: showStats,
+        show_icons: parseBoolean(show_icons),
+        number_format,
+        text_bold: parseBoolean(text_bold),
+        line_height,
+        username,
+        locale: locale ? locale.toLowerCase() : null,
+        description_lines_count,
+      }),
+    };
+  } catch (err) {
+    if (err instanceof Error) {
+      return {
+        status: "error - temporary",
+        content: renderError({
+          message: err.message,
+          secondaryMessage: retrieveSecondaryMessage(err),
+          renderOptions: {
+            ...colorParams,
+            show_repo_link: !(err instanceof MissingParamError),
+          },
+        }),
+      };
+    }
+    return {
+      status: "error - temporary",
+      content: renderError({
+        message: "An unknown error occurred",
+        renderOptions: colorParams,
+      }),
+    };
+  }
+};

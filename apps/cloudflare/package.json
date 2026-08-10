@@ -12,7 +12,7 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@stats-organization/github-readme-stats-core": "^2.1.5",
+    "@stats-organization/github-readme-stats-core": "workspace:^",
     "axios": "catalog:"
   },
   "devDependencies": {
