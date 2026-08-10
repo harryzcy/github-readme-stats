@@ -9,12 +9,19 @@ jobs:
   build:
     name: Perform tests
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # 24 matches .nvmrc and upstream; 26 is what we develop on
+        node-version: [24, 26]
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install dependencies
         uses: ./.github/actions/install-dependencies
+        with:
+          node-version: ${{ matrix.node-version }}
 
       - name: Build and test
         run: |
