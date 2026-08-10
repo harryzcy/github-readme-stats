@@ -28,6 +28,7 @@ jobs:
       - name: Install & Test
         run: |
           pnpm install --frozen-lockfile
+          pnpm run build:packages
           pnpm run test
 
       - name: Test packages
