@@ -23,25 +23,31 @@
     "test": "pnpm --filter './packages/*' --filter './apps/backend' --filter './apps/frontend' run test -- --run",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "lint": "npx eslint --max-warnings 0 \"./apps/cloudflare/**/*.js\"",
+    "lint": "turbo run lint",
     "build:packages": "turbo run build --filter=./packages/*",
     "typecheck": "turbo run typecheck",
     "build:frontend": "turbo run build --filter=./apps/frontend",
-    "dev:frontend": "pnpm run --filter=./apps/frontend dev"
+    "dev:frontend": "pnpm run --filter=./apps/frontend dev",
+    "lint:eslint": "eslint",
+    "lint:eslint:fix": "eslint --fix"
   },
   "author": "Anurag Hazra",
   "license": "MIT",
   "devDependencies": {
-    "@eslint/eslintrc": "^3.3.6",
-    "@eslint/js": "^10.0.1",
-    "eslint": "^10.8.0",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-jsdoc": "^63.3.3",
-    "globals": "^17.9.0",
+    "@eslint-react/eslint-plugin": "5.17.1",
+    "@eslint/compat": "2.1.0",
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.61.1",
+    "eslint": "10.7.0",
+    "eslint-import-resolver-typescript": "4.4.5",
+    "eslint-plugin-import-x": "4.17.1",
+    "eslint-plugin-jsdoc": "63.1.0",
+    "globals": "17.7.0",
     "lint-staged": "^17.3.0",
     "prettier": "^3.9.6",
     "turbo": "2.10.5",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.65.0"
   },
   "lint-staged": {
     "*.{js,css,md}": "prettier --write"

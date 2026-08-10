@@ -1,9 +1,9 @@
-import axios from "axios";
 import {
   getConfig,
   loadConfigFromEnv,
   renderError,
 } from "@stats-organization/github-readme-stats-core";
+import axios from "axios";
 
 // Axios picks fetch here anyway -- http and xhr are unavailable under
 // workerd -- so this only makes the choice explicit.
