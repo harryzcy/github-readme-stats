@@ -33,8 +33,8 @@ jobs:
 
       - name: Test packages
         run:
-          pnpm --filter './packages/*' --filter './apps/backend' run test --
-          --run
+          pnpm --filter './packages/*' --filter './apps/backend' --filter
+          './apps/frontend' run test -- --run
 
       - name: Run ESLint
         run: |
