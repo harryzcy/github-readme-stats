@@ -12,6 +12,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@stats-organization/github-readme-stats-backend": "workspace:^",
     "@stats-organization/github-readme-stats-core": "workspace:^",
     "axios": "catalog:"
   },
