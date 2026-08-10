@@ -23,3 +23,12 @@ apps/backend-copy
 build
 build-ts
 *.tsbuildinfo
+
+apps/frontend/.env
+
+# Playwright (matches upstream)
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+playwright/.auth/
