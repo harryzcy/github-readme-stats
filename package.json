@@ -20,16 +20,19 @@
     "url": "https://github.com/harryzcy/github-readme-stats.git"
   },
   "scripts": {
-    "test": "pnpm --filter './packages/*' --filter './apps/backend' --filter './apps/frontend' run test -- --run",
+    "test": "vitest",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "turbo run lint",
     "build:packages": "turbo run build --filter=./packages/*",
-    "typecheck": "turbo run typecheck",
+    "typecheck": "turbo run typecheck && tsc -p tsconfig.scripts.json",
     "build:frontend": "turbo run build --filter=./apps/frontend",
     "dev:frontend": "pnpm run --filter=./apps/frontend dev",
     "lint:eslint": "eslint",
-    "lint:eslint:fix": "eslint --fix"
+    "lint:eslint:fix": "eslint --fix",
+    "test:coverage": "vitest --config vitest.config.coverage.ts",
+    "lint:knip": "knip",
+    "lint:deps": "node scripts/assert-deduped.ts"
   },
   "author": "Anurag Hazra",
   "license": "MIT",
@@ -38,16 +41,20 @@
     "@eslint/compat": "2.1.0",
     "@eslint/js": "10.0.1",
     "@playwright/test": "1.61.1",
+    "@types/node": "24.13.3",
+    "@vitest/coverage-v8": "catalog:default",
     "eslint": "10.7.0",
     "eslint-import-resolver-typescript": "4.4.5",
     "eslint-plugin-import-x": "4.17.1",
     "eslint-plugin-jsdoc": "63.1.0",
     "globals": "17.7.0",
+    "knip": "6.27.0",
     "lint-staged": "^17.3.0",
     "prettier": "^3.9.6",
     "turbo": "2.10.5",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.65.0"
+    "typescript-eslint": "8.65.0",
+    "vitest": "catalog:default"
   },
   "lint-staged": {
     "*.{js,css,md}": "prettier --write"
