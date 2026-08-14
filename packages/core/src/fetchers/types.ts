@@ -1,3 +1,5 @@
+import type { RepoInfoFragment } from "../graphql/generated/repo.js";
+
 export interface GistData {
   name: string;
   nameWithOwner: string;
@@ -7,21 +9,17 @@ export interface GistData {
   forksCount: number;
 }
 
-export interface RepoInfo {
-  name: string;
-  nameWithOwner: string;
-  isPrivate: boolean;
-  isArchived: boolean;
-  isTemplate: boolean;
-  stargazerCount: number;
-  description: string | null;
+/**
+ * What the repo query returns, with `primaryLanguage` loosened:
+ * the schema says `name` is non-null, but the card falls back to defaults for callers passing untyped data.
+ */
+type RepoInfo = Omit<RepoInfoFragment, "primaryLanguage"> & {
   primaryLanguage: {
     color: string | null;
     id?: string;
     name: string | null;
   } | null;
-  forkCount: number;
-}
+};
 
 export interface RepoUserStats {
   // only present when the matching include_* flag is set (see fetchRepoUserStats)

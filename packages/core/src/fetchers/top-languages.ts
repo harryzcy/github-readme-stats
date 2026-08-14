@@ -1,79 +1,19 @@
-import type { AxiosResponse } from "axios";
-
 import { getConfig } from "../common/config.js";
 import { CustomError, MissingParamError } from "../common/error.js";
 import { wrapTextMultiline } from "../common/fmt.js";
-import { request } from "../common/http.js";
+import { createGraphQLFetcher } from "../common/http.js";
 import { logger } from "../common/log.js";
 import { parseOwnerAffiliations } from "../common/ops.js";
 import { retryer } from "../common/retryer.js";
+import { TopLanguagesDocument } from "../graphql/generated/top-languages.js";
+import type {
+  TopLanguageFragment,
+  TopLanguagesRepositoryFragment,
+} from "../graphql/generated/top-languages.js";
 
 import type { Lang, TopLangData } from "./types.js";
 
-/**
- * Top languages fetcher object.
- *
- * @param variables Fetcher variables.
- * @param token GitHub token.
- * @returns Languages fetcher response.
- */
-const fetcher = (
-  variables: Record<string, unknown>,
-  token: string,
-): Promise<AxiosResponse> => {
-  return request(
-    {
-      query: `
-      query userInfo($login: String!, $ownerAffiliations: [RepositoryAffiliation]) {
-        user(login: $login) {
-          # do not fetch forks
-          repositories(ownerAffiliations: $ownerAffiliations, isFork: false, first: 100) {
-            nodes {
-              name
-              languages(first: 10, orderBy: {field: SIZE, direction: DESC}) {
-                edges {
-                  size
-                  node {
-                    color
-                    name
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-      `,
-      variables,
-    },
-    {
-      Authorization: `token ${token}`,
-    },
-  );
-};
-
-/** A language edge within a repository's `languages` connection. */
-interface LanguageEdge {
-  size: number;
-  node: { color: string; name: string };
-}
-
-/** A repository node returned by the query. */
-interface RepositoryNode {
-  name: string;
-  /** Not selected by the query; only here so the no-op sort below type-checks. */
-  size?: number;
-  languages: { edges: Array<LanguageEdge> };
-}
-
-/** Shape of `response.data` returned by the top-languages query. */
-interface TopLanguagesQueryResponse {
-  data: {
-    user: {
-      repositories: { nodes: Array<RepositoryNode> };
-    };
-  };
-}
+const fetcher = createGraphQLFetcher(TopLanguagesDocument, "token");
 
 /**
  * Fetch top languages for a given username.
@@ -99,7 +39,7 @@ const fetchTopLanguages = async (
   }
   const affiliations = parseOwnerAffiliations(ownerAffiliations);
 
-  const res = await retryer<TopLanguagesQueryResponse>(
+  const res = await retryer(
     fetcher,
     {
       login: username,
@@ -141,18 +81,22 @@ const fetchTopLanguages = async (
   });
 
   // filter out repositories to be hidden
-  const repoNodes = res.data.data.user.repositories.nodes
-    .sort((a, b) => (b.size ?? 0) - (a.size ?? 0))
-    .filter((node) => !repoToHide[node.name]);
+  const repoNodes = (res.data.data.user?.repositories.nodes ?? []).filter(
+    (node): node is TopLanguagesRepositoryFragment =>
+      !!node && !repoToHide[node.name],
+  );
 
   // flatten edges across repos. Order matters: `concat(acc)` prepends, and the
   // shared repoCount below depends on visitation order.
-  const languageEdges = repoNodes
-    .filter((node) => node.languages.edges.length > 0)
-    .reduce<Array<LanguageEdge>>(
-      (acc, curr) => curr.languages.edges.concat(acc),
-      [],
-    );
+  const languageEdges = repoNodes.reduce<Array<TopLanguageFragment>>(
+    (acc, repo) => {
+      const edges = (repo.languages?.edges ?? []).filter(
+        (edge): edge is TopLanguageFragment => !!edge,
+      );
+      return edges.length > 0 ? edges.concat(acc) : acc;
+    },
+    [],
+  );
 
   // accumulate size and repo count per language
   const languageMap: Record<string, Lang> = {};

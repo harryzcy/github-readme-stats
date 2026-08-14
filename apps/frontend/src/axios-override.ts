@@ -88,9 +88,7 @@ axios.defaults.adapter = async (config) => {
 
   if (
     config.url === "https://api.github.com/graphql" &&
-    params.query?.includes(
-      "query userInfo($login: String!, $after: String, $includeMergedPullRequests:",
-    ) &&
+    params.query?.includes("query userInfo(") &&
     params.variables?.login === DEMO_USER
   ) {
     return createMockResponse(userStats, config);
@@ -98,9 +96,7 @@ axios.defaults.adapter = async (config) => {
 
   if (
     config.url === "https://api.github.com/graphql" &&
-    params.query?.includes(
-      "query userInfo($login: String!, $after: String, $ownerAffiliations:",
-    ) &&
+    params.query?.includes("query userRepos(") &&
     params.variables?.login === DEMO_USER
   ) {
     return createMockResponse(additionalUserStars, config);
@@ -108,9 +104,7 @@ axios.defaults.adapter = async (config) => {
 
   if (
     config.url === "https://api.github.com/graphql" &&
-    params.query?.includes(
-      "query userInfo($login: String!, $ownerAffiliations:",
-    ) &&
+    params.query?.includes("query topLanguages(") &&
     params.variables?.login === DEMO_USER
   ) {
     return createMockResponse(topLanguages, config);
@@ -118,7 +112,7 @@ axios.defaults.adapter = async (config) => {
 
   if (
     config.url === "https://api.github.com/graphql" &&
-    params.query?.includes("fragment RepoInfo on Repository {") &&
+    params.query?.includes("query getRepo(") &&
     params.variables &&
     params.variables.login === DEMO_REPO.split("/")[0] &&
     params.variables.repo === DEMO_REPO.split("/")[1]
