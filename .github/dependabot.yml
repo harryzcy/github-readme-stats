@@ -57,6 +57,11 @@ updates:
         patterns:
           - "axios"
           - "axios-*"
+      graphql:
+        patterns:
+          - "graphql"
+          - "@graphql-codegen/*"
+          - "@octokit/graphql-schema"
 
   # Maintain dependencies for GitHub Actions
   - package-ecosystem: github-actions

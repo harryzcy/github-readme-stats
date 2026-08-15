@@ -1,13 +1,11 @@
-import type { themes } from "../themes/index.js";
-
-type ThemeNames = keyof typeof themes;
+import type { ThemeName } from "../themes/index.js";
 
 export interface CommonOptions {
   title_color: string;
   icon_color: string;
   text_color: string;
   bg_color: string;
-  theme: ThemeNames;
+  theme: ThemeName;
   border_radius: number;
   border_color: string;
   locale: string;

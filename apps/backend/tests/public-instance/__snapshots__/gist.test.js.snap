@@ -239,7 +239,7 @@ exports[`Test /api/gist contract > should match the public many-params response 
   
         </g>
       </svg>",
-  "graphqlRequest": "{"query":"\\nquery gistInfo($gistName: String!) {\\n    viewer {\\n        gist(name: $gistName) {\\n            description\\n            owner {\\n                login\\n            }\\n            stargazerCount\\n            forks {\\n                totalCount\\n            }\\n            files {\\n                name\\n                language {\\n                    name\\n                }\\n                size\\n            }\\n        }\\n    }\\n}\\n","variables":{"gistName":"happy-gist-id"}}",
+  "graphqlRequest": "{"query":"\\nquery gistInfo($gistName: String!) {\\n  viewer {\\n    gist(name: $gistName) {\\n      description\\n      owner {\\n        login\\n      }\\n      stargazerCount\\n      forks {\\n        totalCount\\n      }\\n      files {\\n        ...GistFileInfo\\n      }\\n    }\\n  }\\n}\\nfragment GistFileInfo on GistFile {\\n  name\\n  language {\\n    name\\n  }\\n  size\\n}","variables":{"gistName":"happy-gist-id"}}",
   "headers": [
     [
       "Cache-Control",
