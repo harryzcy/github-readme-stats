@@ -1,8 +1,9 @@
 name: Sync Upstream
 
-# The vendored trees are byte-identical to upstream, so dependabot ignores them
-# and nothing notices when upstream moves. This opens a PR with upstream's
-# branch as the head, leaving the merge itself to GitHub.
+# Vendored packages/core, apps/backend and apps/frontend are byte-identical to
+# upstream, so dependabot cannot see them and nothing else notices when
+# upstream moves. This opens a PR with the merge, or files an issue when the
+# merge needs hands.
 
 on:
   schedule:
@@ -11,46 +12,75 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
+  issues: write
 
 env:
-  # "user:ref-name", the cross-repo head format the compare and pulls APIs take.
-  UPSTREAM_HEAD: stats-organization:master
-  BASE: ${{ github.ref_name }}
+  UPSTREAM: https://github.com/stats-organization/github-stats-extended.git
+  UPSTREAM_BRANCH: master
+  SYNC_BRANCH: sync/upstream
   # Without this, gh resolves to the upstream remote, which the token can't write.
   GH_REPO: ${{ github.repository }}
-  GH_TOKEN: ${{ github.token }}
 
 jobs:
   sync:
-    name: Open the sync PR
+    name: Merge upstream
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream "$UPSTREAM"
+          git fetch upstream "$UPSTREAM_BRANCH"
+
       - name: Check whether upstream has moved
         id: check
         run: |
-          ahead=$(gh api "repos/$GH_REPO/compare/$BASE...$UPSTREAM_HEAD" --jq '.ahead_by')
-          echo "ahead=$ahead" >> "$GITHUB_OUTPUT"
-          if [ "$ahead" -eq 0 ]; then
+          behind=$(git rev-list --count "HEAD..upstream/$UPSTREAM_BRANCH")
+          echo "behind=$behind" >> "$GITHUB_OUTPUT"
+          if [ "$behind" -eq 0 ]; then
             echo "Already up to date with upstream." >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "$ahead commit(s) behind upstream." >> "$GITHUB_STEP_SUMMARY"
+            echo "$behind commit(s) behind upstream." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Attempt the merge
+        id: merge
+        if: steps.check.outputs.behind != '0'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$SYNC_BRANCH"
+
+          if git merge --no-edit "upstream/$UPSTREAM_BRANCH"; then
+            echo "clean=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "clean=false" >> "$GITHUB_OUTPUT"
+            # record the conflicting paths before throwing the attempt away
+            git diff --name-only --diff-filter=U > /tmp/conflicts.txt
+            git merge --abort
           fi
 
       - name: Open or update the pull request
-        if: steps.check.outputs.ahead != '0'
+        if: steps.merge.outputs.clean == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          body=$(cat <<EOF
-          Merges ${{ steps.check.outputs.ahead }} commit(s) from [upstream](https://github.com/stats-organization/github-stats-extended).
+          git push --force-with-lease origin "$SYNC_BRANCH"
 
-          The head is upstream's \`master\` itself, so this PR keeps following upstream as
-          it moves and GitHub reports any conflict here. Before merging, check that the
-          vendored trees still match upstream and that our deliberate divergences survived:
+          body=$(cat <<EOF
+          Merges ${{ steps.check.outputs.behind }} commit(s) from [upstream](https://github.com/stats-organization/github-stats-extended).
+
+          The merge applied cleanly. Before merging, check that the vendored trees still
+          match upstream and that our deliberate divergences survived:
 
           \`\`\`bash
-          git fetch upstream
           git diff upstream/master -- packages/core          # expect empty
           git diff upstream/master -- apps/backend           # expect the vercel.json redirect
           git diff upstream/master -- apps/frontend          # expect the link swaps and og:url
@@ -64,16 +94,51 @@ jobs:
           EOF
           )
 
-          existing=$(gh api "repos/$GH_REPO/pulls?state=open&head=$UPSTREAM_HEAD" --jq '.[0].number // empty')
-          if [ -n "$existing" ]; then
-            gh pr edit "$existing" --body "$body"
-            echo "Updated sync PR #$existing." >> "$GITHUB_STEP_SUMMARY"
+          if gh pr list --head "$SYNC_BRANCH" --state open --json number --jq 'length' | grep -qv '^0$'; then
+            gh pr edit "$SYNC_BRANCH" --body "$body"
+            echo "Updated the existing sync PR." >> "$GITHUB_STEP_SUMMARY"
           else
             gh pr create \
-              --base "$BASE" \
-              --head "$UPSTREAM_HEAD" \
-              --no-maintainer-edit \
+              --base "${{ github.ref_name }}" \
+              --head "$SYNC_BRANCH" \
               --title "chore: merge upstream ($(date -u +%Y-%m-%d))" \
               --body "$body"
             echo "Opened a sync PR." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Report a conflicting merge
+        if: steps.merge.outputs.clean == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          conflicts=$(sed 's/^/- `/; s/$/`/' /tmp/conflicts.txt)
+          title="Upstream merge needs manual resolution"
+          body=$(cat <<EOF
+          \`upstream/$UPSTREAM_BRANCH\` is ${{ steps.check.outputs.behind }} commit(s) ahead and the
+          merge does not apply cleanly, so no PR was opened.
+
+          Conflicting paths:
+
+          $conflicts
+
+          To resolve locally:
+
+          \`\`\`bash
+          git fetch upstream
+          git switch -c $SYNC_BRANCH
+          git merge upstream/$UPSTREAM_BRANCH
+          \`\`\`
+
+          Our deliberate divergences are listed under "Copy rule" in #842.
+
+          > Filed by the \`Sync Upstream\` workflow. It updates this issue rather than
+          > opening a new one each week.
+          EOF
+          )
+
+          existing=$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number // empty')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
           fi
