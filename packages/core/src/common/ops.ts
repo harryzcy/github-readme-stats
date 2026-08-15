@@ -1,5 +1,7 @@
 import toEmoji from "emoji-name-map";
 
+import type { RepositoryAffiliation } from "../graphql/generated/common.js";
+
 import { OWNER_AFFILIATIONS } from "./constants.js";
 import { CustomError } from "./error.js";
 
@@ -111,6 +113,9 @@ const dateDiff = (d1: Date, d2: Date): number => {
   return Math.round(diff / (1000 * 60));
 };
 
+const isOwnerAffiliation = (value: string): value is RepositoryAffiliation =>
+  OWNER_AFFILIATIONS.some((affiliation) => affiliation === value);
+
 /**
  * Parse owner affiliations.
  *
@@ -119,7 +124,9 @@ const dateDiff = (d1: Date, d2: Date): number => {
  *
  * @throws {CustomError} If affiliations contains invalid values.
  */
-const parseOwnerAffiliations = (affiliations: Array<string>): Array<string> => {
+const parseOwnerAffiliations = (
+  affiliations: Array<string>,
+): Array<RepositoryAffiliation> => {
   // Set default value for ownerAffiliations.
   // NOTE: Done here since parseArray() will always return an empty array even nothing
   //was specified.
@@ -129,9 +136,7 @@ const parseOwnerAffiliations = (affiliations: Array<string>): Array<string> => {
       : ["OWNER"];
 
   // Check if ownerAffiliations contains valid values.
-  if (
-    normalized.some((affiliation) => !OWNER_AFFILIATIONS.includes(affiliation))
-  ) {
+  if (!normalized.every(isOwnerAffiliation)) {
     throw new CustomError(
       "Invalid query parameter",
       CustomError.INVALID_AFFILIATION,

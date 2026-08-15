@@ -1,3 +1,4 @@
+import type { ThemeName } from "@stats-organization/github-readme-stats-core";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { JSX } from "react";
 import { useDispatch } from "react-redux";
@@ -8,7 +9,11 @@ import { authenticate } from "../../api/user";
 import { DEFAULT_OPTION as LANGUAGES_DEFAULT_LAYOUT } from "../../components/Home/LanguagesLayoutSection";
 import { DEFAULT_OPTION as WAKATIME_DEFAULT_LAYOUT } from "../../components/Home/WakatimeLayoutSection";
 import { DEMO_USER } from "../../constants";
-import { CardType } from "../../models/CardType";
+import {
+  CATEGORY_BY_CARD_TYPE,
+  CardCategory,
+  CardType,
+} from "../../models/CardType";
 import { STAGE_LABELS } from "../../models/Stage";
 import type { StageIndex } from "../../models/Stage";
 import { useTheme } from "../../redux/selectors/themeSelectors";
@@ -32,6 +37,13 @@ import { useCardDescriptor } from "./useCardDescriptor";
 interface HomeScreenProps {
   stage: StageIndex;
   setStage: (stageIndex: StageIndex) => void;
+}
+
+function getDefaultTheme(isDark: boolean, category: CardCategory): ThemeName {
+  if (category === CardCategory.REPO) {
+    return isDark ? "dark_github_repocard" : "light_github_repocard";
+  }
+  return isDark ? "dark_github" : "light_github";
 }
 
 export function HomeScreen({ stage, setStage }: HomeScreenProps): JSX.Element {
@@ -66,7 +78,10 @@ export function HomeScreen({ stage, setStage }: HomeScreenProps): JSX.Element {
   }
 
   const { isDark } = useTheme();
-  const [theme, setTheme] = useState(isDark ? "dark" : "default");
+  const cardCategory = CATEGORY_BY_CARD_TYPE[selectedCard];
+  const [theme, setTheme] = useState(() =>
+    getDefaultTheme(isDark, cardCategory),
+  );
 
   const handleCardTypeChange = (cardType: CardType) => {
     if (cardType === CardType.TOP_LANGS) {
@@ -83,12 +98,8 @@ export function HomeScreen({ stage, setStage }: HomeScreenProps): JSX.Element {
       }));
     }
 
-    if (theme === "default" || theme === "default_repocard") {
-      if (cardType === CardType.PIN || cardType === CardType.GIST) {
-        setTheme("default_repocard");
-      } else {
-        setTheme("default");
-      }
+    if (theme === getDefaultTheme(isDark, cardCategory)) {
+      setTheme(getDefaultTheme(isDark, CATEGORY_BY_CARD_TYPE[cardType]));
     }
 
     setSelectedCard(cardType);
@@ -107,19 +118,14 @@ export function HomeScreen({ stage, setStage }: HomeScreenProps): JSX.Element {
 
   // Preview builder for the customize stage, dark-themed to match the surroundings.
   const customizeCardBuilder = useMemo(
-    () => (isDark ? cardBuilder.theme("github_dark") : cardBuilder),
-    [cardBuilder, isDark],
+    () => cardBuilder.theme(getDefaultTheme(isDark, cardCategory)),
+    [cardBuilder, isDark, cardCategory],
   );
 
   // for stage four
-  const isRepoCard =
-    selectedCard === CardType.PIN || selectedCard === CardType.GIST;
-  const defaultTheme = isRepoCard ? "default_repocard" : "default";
-  const isDefaultTheme = theme === defaultTheme;
-
   const themeBuilder = useMemo(
-    () => (isDefaultTheme ? cardBuilder : cardBuilder.theme(theme)),
-    [cardBuilder, isDefaultTheme, theme],
+    () => cardBuilder.theme(theme),
+    [cardBuilder, theme],
   );
 
   // for stage five
@@ -252,6 +258,7 @@ export function HomeScreen({ stage, setStage }: HomeScreenProps): JSX.Element {
             <ThemeStage
               card={cardBuilder}
               theme={theme}
+              category={cardCategory}
               onThemeChange={(theme) => {
                 setTheme(theme);
                 setStage(4);

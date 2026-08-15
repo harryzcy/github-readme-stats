@@ -31,6 +31,19 @@ pnpm --filter ./packages/core/ run test:update:snapshot
 pnpm --filter ./apps/backend/ run test:update:snapshot
 ```
 
+## GraphQL Queries
+
+The GraphQL queries live in `packages/core/src/graphql/queries/*.graphql`,
+and their TypeScript types are generated from GitHub's published schema into `packages/core/src/graphql/generated/`.
+Those generated files are committed, so if you change a query, regenerate them and include the result in your PR:
+
+```bash
+pnpm --filter ./packages/core/ run generate-graphql-types
+```
+
+CI runs `pnpm --filter ./packages/core/ run check-graphql-types`, which fails if the committed types no longer match the queries.
+Never edit the generated files by hand — change the `.graphql` file and regenerate.
+
 ## Themes Contribution
 
 We have stopped the addition of new themes to decrease maintenance efforts. If you are considering contributing your theme just because you are using it personally, then instead of adding it to our theme collection, you can use card [customization options](../docs/advanced_documentation.md#customization).
