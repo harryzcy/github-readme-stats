@@ -6,125 +6,32 @@ import { calculateRank } from "../calculateRank.js";
 import { getConfig } from "../common/config.js";
 import { CustomError, MissingParamError } from "../common/error.js";
 import { wrapTextMultiline } from "../common/fmt.js";
-import { request } from "../common/http.js";
+import { createGraphQLFetcher } from "../common/http.js";
+import type { GraphQLResponse } from "../common/http.js";
 import { logger } from "../common/log.js";
 import { buildSearchFilter, parseOwnerAffiliations } from "../common/ops.js";
 import { retryer } from "../common/retryer.js";
+import {
+  UserInfoDocument,
+  UserReposDocument,
+} from "../graphql/generated/stats.js";
+import type {
+  RepoNodeFragment,
+  UserInfoQuery,
+  UserInfoQueryVariables,
+} from "../graphql/generated/stats.js";
 
 import type { RepoUserStats, StatsData } from "./types.js";
 
-// GraphQL queries.
-const GRAPHQL_REPOS_FIELD = `
-  repositories(first: 100, after: $after, ownerAffiliations: $ownerAffiliations, orderBy: {direction: DESC, field: STARGAZERS}) {
-    totalCount
-    nodes {
-      name
-      stargazerCount
-    }
-    pageInfo {
-      hasNextPage
-      endCursor
-    }
-  }
-`;
-
-const GRAPHQL_REPOS_QUERY = `
-  query userInfo($login: String!, $after: String, $ownerAffiliations: [RepositoryAffiliation]) {
-    user(login: $login) {
-      ${GRAPHQL_REPOS_FIELD}
-    }
-  }
-`;
-
-const GRAPHQL_STATS_QUERY = `
-  query userInfo($login: String!, $after: String, $includeMergedPullRequests: Boolean!, $includeDiscussions: Boolean!, $includeDiscussionsAnswers: Boolean!, $startTime: DateTime = null, $ownerAffiliations: [RepositoryAffiliation]) {
-    user(login: $login) {
-      name
-      login
-      commits: contributionsCollection (from: $startTime) {
-        totalCommitContributions,
-      }
-      reviews: contributionsCollection {
-        totalPullRequestReviewContributions
-      }
-      repositoriesContributedTo(first: 1, contributionTypes: [COMMIT, ISSUE, PULL_REQUEST, REPOSITORY]) {
-        totalCount
-      }
-      pullRequests(first: 1) {
-        totalCount
-      }
-      mergedPullRequests: pullRequests(states: MERGED) @include(if: $includeMergedPullRequests) {
-        totalCount
-      }
-      openIssues: issues(states: OPEN) {
-        totalCount
-      }
-      closedIssues: issues(states: CLOSED) {
-        totalCount
-      }
-      followers {
-        totalCount
-      }
-      repositoryDiscussions @include(if: $includeDiscussions) {
-        totalCount
-      }
-      repositoryDiscussionComments(onlyAnswers: true) @include(if: $includeDiscussionsAnswers) {
-        totalCount
-      }
-      ${GRAPHQL_REPOS_FIELD}
-    }
-  }
-`;
-
-/** The `user` object returned by the stats GraphQL query. */
-interface StatsUser {
-  name: string | null;
-  login: string;
-  commits: { totalCommitContributions: number };
-  reviews: { totalPullRequestReviewContributions: number };
-  repositoriesContributedTo: { totalCount: number };
-  pullRequests: { totalCount: number };
-  // conditionally included via @include(if: …), so absent when their flag is off
-  mergedPullRequests?: { totalCount: number };
-  openIssues: { totalCount: number };
-  closedIssues: { totalCount: number };
-  followers: { totalCount: number };
-  repositoryDiscussions?: { totalCount: number };
-  repositoryDiscussionComments?: { totalCount: number };
-  repositories: {
-    totalCount: number;
-    nodes: Array<{ name: string; stargazerCount: number }>;
-    pageInfo: { hasNextPage: boolean; endCursor: string | null };
-  };
-}
-
-/** Shape of `response.data` returned by the stats GraphQL query. */
-interface StatsQueryResponse {
-  data: { user: StatsUser };
-}
-
 /** The subset of the stats response `statsFetcher` returns and threads on. */
-interface StatsFetcherResponse {
-  data: StatsQueryResponse & {
-    errors?: Array<{ type?: string; message?: string }>;
-  };
-  statusText: string;
-}
+type StatsFetcherResponse = Pick<
+  GraphQLResponse<UserInfoQuery>,
+  "data" | "statusText"
+>;
 
-/**
- * Stats fetcher object.
- *
- * @param variables Fetcher variables.
- * @param token GitHub token.
- * @returns Axios response.
- */
-const fetcher = (
-  variables: Record<string, unknown>,
-  token: string,
-): Promise<AxiosResponse> => {
-  const query = variables["after"] ? GRAPHQL_REPOS_QUERY : GRAPHQL_STATS_QUERY;
-  return request({ query, variables }, { Authorization: `bearer ${token}` });
-};
+const fetcher = createGraphQLFetcher(UserInfoDocument, "bearer");
+/** Fetcher for the pages after the first, which only need `repositories`. */
+const reposFetcher = createGraphQLFetcher(UserReposDocument, "bearer");
 
 /**
  * Fetch stats information for a given username.
@@ -137,7 +44,7 @@ const fetcher = (
  * @param variables.startTime Time to start the count of total commits.
  * @param variables.ownerAffiliations The owner affiliations to filter by. Default: OWNER.
  * @param variables.pat PAT override or null.
- * @returns Axios response.
+ * @returns The stats response, with every fetched page's repos merged in.
  *
  * @description Supports multi-page fetching when the `FETCH_MULTI_PAGE_STARS`
  * env variable is `true` or a fetch limit.
@@ -156,61 +63,72 @@ const statsFetcher = async ({
   includeDiscussions: boolean;
   includeDiscussionsAnswers: boolean;
   startTime: string | undefined;
-  ownerAffiliations: Array<string>;
+  ownerAffiliations: UserInfoQueryVariables["ownerAffiliations"];
   pat: string | null;
 }): Promise<StatsFetcherResponse> => {
-  let stats: StatsFetcherResponse | undefined;
-  let hasNextPage = true;
-  let endCursor: string | null = null;
-  let fetchedPages = 0;
-  while (hasNextPage) {
-    const variables: Record<string, unknown> = {
+  // only the first request carries the stats themselves
+  let stats: StatsFetcherResponse = await retryer(
+    fetcher,
+    {
       login: username,
-      first: 100,
-      after: endCursor,
+      after: null,
       includeMergedPullRequests,
       includeDiscussions,
       includeDiscussionsAnswers,
       startTime,
       ownerAffiliations,
-    };
-    const res = await retryer<StatsQueryResponse>(fetcher, variables, pat);
-    if (res.data.errors) {
-      return res;
-    }
+    },
+    pat,
+  );
+  if (stats.data.errors) {
+    return stats;
+  }
 
-    // Store stats data.
-    const repoNodes = res.data.data.user.repositories.nodes;
-    if (stats) {
-      if (fetchedPages === 1) {
-        // deep copy to avoid mutating the response cached by the frontend
-        stats = structuredClone({
-          data: stats.data,
-          statusText: stats.statusText,
-        });
-      }
-      stats.data.data.user.repositories.nodes.push(...repoNodes);
-    } else {
-      stats = res;
-    }
+  const pageLimit = getConfig().fetchMultiPageStars;
 
-    fetchedPages++;
-    const repoNodesWithStars = repoNodes.filter(
-      (node) => node.stargazerCount !== 0,
+  const extraRepoNodes: Array<RepoNodeFragment | null> = [];
+  let pageRepositories = stats.data.data.user?.repositories;
+  let previousCursor: string | null = null;
+  let fetchedPages = 1;
+  while (
+    fetchedPages < pageLimit &&
+    // an unstarred repo on the page means the starred ones are exhausted
+    !pageRepositories?.nodes?.some((node) => node?.stargazerCount === 0) &&
+    pageRepositories?.pageInfo.hasNextPage
+  ) {
+    const after = pageRepositories.pageInfo.endCursor;
+    // a null or non-advancing cursor would refetch the same page forever
+    if (after === null || after === previousCursor) {
+      break;
+    }
+    previousCursor = after;
+
+    const page = await retryer(
+      reposFetcher,
+      { login: username, after, ownerAffiliations },
+      pat,
     );
+    if (page.data.errors) {
+      return {
+        data: { ...stats.data, errors: page.data.errors },
+        statusText: page.statusText,
+      };
+    }
 
-    hasNextPage =
-      (getConfig().fetchMultiPageStars === "true" ||
-        Number(getConfig().fetchMultiPageStars) > fetchedPages) &&
-      repoNodes.length === repoNodesWithStars.length &&
-      res.data.data.user.repositories.pageInfo.hasNextPage;
-
-    endCursor = res.data.data.user.repositories.pageInfo.endCursor;
+    pageRepositories = page.data.data.user?.repositories;
+    extraRepoNodes.push(...(pageRepositories?.nodes ?? []));
+    fetchedPages++;
   }
 
-  if (!stats) {
-    throw new Error("No stats data fetched.");
+  if (extraRepoNodes.length > 0) {
+    // deep copy to avoid mutating the response cached by the frontend
+    stats = structuredClone({
+      data: stats.data,
+      statusText: stats.statusText,
+    });
+    stats.data.data.user?.repositories.nodes?.push(...extraRepoNodes);
   }
+
   return stats;
 };
 
@@ -251,7 +169,9 @@ const fetchTotalItems = (
  * @param username GitHub username.
  * @returns Total count.
  *
- * @see #92#issuecomment-661026467 and #211 — the GraphQL API can't return this.
+ * The GraphQL API can't return this.
+ * @see https://github.com/anuraghazra/github-readme-stats/issues/92#issuecomment-661026467
+ * @see https://github.com/anuraghazra/github-readme-stats/pull/211
  */
 const totalItemsFetcher = async (
   username: string,
@@ -451,6 +371,9 @@ const fetchStats = async (
   }
 
   const user = res.data.data.user;
+  if (!user) {
+    throw new CustomError("Could not fetch user.", CustomError.USER_NOT_FOUND);
+  }
 
   stats.name = user.name || user.login;
 
@@ -505,9 +428,9 @@ const fetchStats = async (
   ];
   const repoToHide = new Set(allExcludedRepos);
 
-  stats.totalStars = user.repositories.nodes
-    .filter((data) => !repoToHide.has(data.name))
-    .reduce((prev, curr) => prev + curr.stargazerCount, 0);
+  stats.totalStars = (user.repositories.nodes ?? [])
+    .filter((data) => !!data && !repoToHide.has(data.name))
+    .reduce((prev, curr) => prev + (curr?.stargazerCount ?? 0), 0);
 
   stats.rank = calculateRank({
     all_commits: include_all_commits,

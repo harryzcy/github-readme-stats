@@ -17,6 +17,10 @@ const gitignorePath = fileURLToPath(new URL(".gitignore", import.meta.url));
 
 export default defineConfig(
   includeIgnoreFile(gitignorePath, "Imported .gitignore patterns"),
+  {
+    name: "Generated GraphQL types",
+    ignores: ["packages/core/src/graphql/generated/**"],
+  },
   js.configs.recommended,
 
   {
