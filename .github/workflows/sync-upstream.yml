@@ -20,6 +20,8 @@ env:
   UPSTREAM: https://github.com/stats-organization/github-stats-extended.git
   UPSTREAM_BRANCH: master
   SYNC_BRANCH: sync/upstream
+  # Without this, gh resolves to the upstream remote, which the token can't write.
+  GH_REPO: ${{ github.repository }}
 
 jobs:
   sync:
