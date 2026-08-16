@@ -105,6 +105,7 @@ export default async (
       showStats.includes("issues_authored"),
       showStats.includes("issues_commented"),
       parseArray(role),
+      showStats.includes("contributions"),
       pat,
     );
 

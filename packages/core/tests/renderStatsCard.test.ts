@@ -25,6 +25,7 @@ const stats: StatsData = {
   totalPRsReviewed: 100,
   totalIssuesAuthored: 100,
   totalIssuesCommented: 100,
+  totalContributions: 5000,
   rank: { level: "A+", percentile: 40 },
 };
 
@@ -57,6 +58,7 @@ describe("Test renderStatsCard", () => {
     expect(
       screen.queryByTestId("prs_merged_percentage"),
     ).not.toBeInTheDocument();
+    expect(screen.queryByTestId("contributions")).not.toBeInTheDocument();
   });
 
   it("should have proper name apostrophe", () => {
@@ -119,6 +121,14 @@ describe("Test renderStatsCard", () => {
     expect(screen.queryByTestId("discussions_answered")).toBeDefined();
     expect(screen.queryByTestId("prs_merged")).toBeDefined();
     expect(screen.queryByTestId("prs_merged_percentage")).toBeDefined();
+  });
+
+  it("should show contributions stat when included in show list", () => {
+    document.body.innerHTML = renderStatsCard(stats, {
+      show: ["contributions"],
+    });
+
+    expect(screen.getByTestId("contributions").textContent).toBe("5k");
   });
 
   it("should hide_rank", () => {
