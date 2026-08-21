@@ -90,7 +90,7 @@
     "@uppercod/css-to-object": "1.1.1",
     "axios-mock-adapter": "2.1.0",
     "graphql": "17.0.2",
-    "js-yaml": "5.2.3",
+    "js-yaml": "5.3.0",
     "jsdom": "catalog:default",
     "vitest": "catalog:default"
   },
