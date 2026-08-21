@@ -247,6 +247,7 @@ const renderStatsCard = (
     totalPRsReviewed,
     totalIssuesAuthored,
     totalIssuesCommented,
+    totalContributions,
     rank,
   } = stats;
   const {
@@ -293,6 +294,16 @@ const renderStatsCard = (
     value: totalStars,
     id: "stars",
   };
+
+  if (show.includes("contributions")) {
+    STATS["contributions"] = {
+      icon: icons.contributions,
+      label: i18n.t("statcard.contributions"),
+      value: totalContributions,
+      id: "contributions",
+    };
+  }
+
   STATS["commits"] = {
     icon: icons.commits,
     label: `${i18n.t("statcard.commits")}${getTotalCommitsYearLabel(
