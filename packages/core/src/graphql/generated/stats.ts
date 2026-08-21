@@ -63,12 +63,17 @@ export type UserInfoQuery = {
     followers: { totalCount: number };
     repositoryDiscussions?: { totalCount: number };
     repositoryDiscussionComments?: { totalCount: number };
+    contributionsCollection: { contributionYears: Array<number> };
     repositories: {
       totalCount: number;
       nodes: Array<{ name: string; stargazerCount: number } | null> | null;
       pageInfo: { hasNextPage: boolean; endCursor: string | null };
     };
   } | null;
+};
+
+export type YearContributionsFragment = {
+  contributionCalendar: { totalContributions: number };
 };
 
 export const UserReposDocument = graphqlDocument<
@@ -142,6 +147,9 @@ query userInfo($login: String!, $after: String, $includeMergedPullRequests: Bool
     }
     repositoryDiscussionComments(onlyAnswers: true) @include(if: $includeDiscussionsAnswers) {
       totalCount
+    }
+    contributionsCollection {
+      contributionYears
     }
     ...RepoStars
   }
