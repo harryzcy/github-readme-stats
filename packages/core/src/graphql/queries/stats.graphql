@@ -78,6 +78,15 @@ query userInfo(
       @include(if: $includeDiscussionsAnswers) {
       totalCount
     }
+    contributionsCollection {
+      contributionYears
+    }
     ...RepoStars
+  }
+}
+
+fragment YearContributions on ContributionsCollection {
+  contributionCalendar {
+    totalContributions
   }
 }

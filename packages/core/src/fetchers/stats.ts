@@ -11,6 +11,7 @@ import type { GraphQLResponse } from "../common/http.js";
 import { logger } from "../common/log.js";
 import { buildSearchFilter, parseOwnerAffiliations } from "../common/ops.js";
 import { retryer } from "../common/retryer.js";
+import { buildContributionsDocument } from "../graphql/contributionsDocument.js";
 import {
   UserInfoDocument,
   UserReposDocument,
@@ -275,6 +276,63 @@ const fetchRepoUserStats = async (
 };
 
 /**
+ * Fetch all-time contributions by building a single GraphQL query
+ * for all the given years.
+ *
+ * Whether private contributions are included depends on the user's profile settings:
+ * https://docs.github.com/en/account-and-profile/how-tos/contribution-settings/manage-visibility-settings-for-private-contributions-and-achievements#changing-the-visibility-of-your-private-contributions
+ */
+const fetchTotalContributions = async (
+  username: string,
+  years: Array<number>,
+  pat: string | null = null,
+): Promise<number> => {
+  if (years.length === 0) {
+    return 0;
+  }
+
+  const contributionsFetcher = createGraphQLFetcher(
+    buildContributionsDocument(years),
+    "bearer",
+  );
+
+  const contribRes = await retryer(
+    contributionsFetcher,
+    { login: username },
+    pat,
+  );
+
+  if (contribRes.data.errors) {
+    logger.error(contribRes.data.errors);
+    const firstError = contribRes.data.errors[0];
+    if (firstError?.message) {
+      throw new CustomError(
+        wrapTextMultiline(firstError.message, 525, 12)[0] ?? "",
+        contribRes.statusText,
+      );
+    }
+    throw new CustomError(
+      "Something went wrong while trying to retrieve the contributions data using the GraphQL API.",
+      CustomError.GRAPHQL_ERROR,
+    );
+  }
+
+  const user = contribRes.data.data.user;
+  if (!user) {
+    return 0;
+  }
+
+  let total = 0;
+  for (const year of years) {
+    const yearBlock = user[`year_${year}`];
+    if (yearBlock?.contributionCalendar.totalContributions) {
+      total += yearBlock.contributionCalendar.totalContributions;
+    }
+  }
+  return total;
+};
+
+/**
  * Fetch stats for a given username.
  *
  * @param username GitHub username.
@@ -292,6 +350,7 @@ const fetchRepoUserStats = async (
  * @param include_issues_authored Include count of issues authored.
  * @param include_issues_commented Include count of issues commented.
  * @param ownerAffiliations Owner affiliations. Default: OWNER.
+ * @param include_contributions Include all-time contributions.
  * @param pat Optional PAT override.
  * @returns Stats data.
  */
@@ -311,6 +370,7 @@ const fetchStats = async (
   include_issues_authored = false,
   include_issues_commented = false,
   ownerAffiliations: Array<string> = [],
+  include_contributions = false,
   pat: string | null = null,
 ): Promise<StatsData> => {
   if (!username) {
@@ -334,6 +394,7 @@ const fetchStats = async (
     totalPRsReviewed: 0,
     totalIssuesAuthored: 0,
     totalIssuesCommented: 0,
+    totalContributions: 0,
     rank: { level: "C", percentile: 100 },
   };
   const affiliations = parseOwnerAffiliations(ownerAffiliations);
@@ -420,6 +481,14 @@ const fetchStats = async (
       user.repositoryDiscussionComments?.totalCount ?? 0;
   }
   stats.contributedTo = user.repositoriesContributedTo.totalCount;
+
+  if (include_contributions) {
+    stats.totalContributions = await fetchTotalContributions(
+      username,
+      user.contributionsCollection.contributionYears,
+      pat,
+    );
+  }
 
   // Retrieve stars while filtering out repositories to be hidden.
   const allExcludedRepos = [

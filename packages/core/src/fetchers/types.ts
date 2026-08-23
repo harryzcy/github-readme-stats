@@ -49,6 +49,7 @@ export interface StatsData {
   totalPRsReviewed: number;
   totalIssuesAuthored: number;
   totalIssuesCommented: number;
+  totalContributions: number;
   rank: { level: string; percentile: number };
 }
 

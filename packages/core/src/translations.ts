@@ -524,6 +524,9 @@ const statCardLocales = ({
     "statcard.issues-commented": {
       en: "Issues Commented",
     },
+    "statcard.contributions": {
+      en: "Total Contributions",
+    },
     "statcard.prs-merged": {
       en: "Total PRs Merged",
       ar: "مجموع طلبات السحب المُدمجة",
