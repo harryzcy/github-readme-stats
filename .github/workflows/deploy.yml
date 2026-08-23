@@ -25,4 +25,3 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: apps/cloudflare
           packageManager: pnpm
-          wranglerVersion: 4.118.0
