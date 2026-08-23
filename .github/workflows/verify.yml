@@ -20,6 +20,8 @@ jobs:
     env:
       BASE_URL: ${{ inputs.base-url }}
       CARD_USERNAME: ${{ inputs.username || github.repository_owner }}
+      # Marks these as CI traffic in Workers Logs and zone analytics.
+      USER_AGENT: github-actions-verify (+https://github.com/${{ github.repository }})
       # Defeats the 10-minute response cache, so we test what was just deployed.
       CACHE_BUST: ${{ github.run_id }}-${{ github.run_attempt }}
     steps:
@@ -50,6 +52,7 @@ jobs:
 
             for attempt in 1 2 3 4 5; do
               status=$(curl --silent --show-error --location --max-time 30 \
+                --user-agent "$USER_AGENT" \
                 --write-out '%{http_code}' --output "$body" "$url" || echo 000)
 
               # Card handlers answer 200 with an error card rather than failing,
