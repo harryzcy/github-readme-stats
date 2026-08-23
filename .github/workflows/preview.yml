@@ -18,7 +18,6 @@ jobs:
       contents: read
       deployments: write
     outputs:
-      # The preview URL of the version just uploaded.
       preview-url: ${{ steps.deploy.outputs.deployment-url }}
       deployment: ${{ steps.deployment.outputs.id }}
     steps:
@@ -31,8 +30,6 @@ jobs:
       - name: Build packages
         run: pnpm run build:packages
 
-      # Workers deploys, unlike Pages ones, don't record themselves. Non-fatal:
-      # dependabot runs may not have a token that can write deployments.
       - name: Start deployment
         id: deployment
         continue-on-error: true
@@ -83,7 +80,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           DEPLOYMENT: ${{ needs.deploy.outputs.deployment }}
-          # Anything short of a passing smoke test is a failed deployment.
           STATE: ${{ needs.verify.result == 'success' && 'success' || 'failure' }}
           PREVIEW_URL: ${{ needs.deploy.outputs.preview-url }}
         run: |
