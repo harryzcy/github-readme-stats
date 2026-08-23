@@ -19,7 +19,7 @@ jobs:
     name: Smoke test
     env:
       BASE_URL: ${{ inputs.base-url }}
-      USERNAME: ${{ inputs.username || github.repository_owner }}
+      CARD_USERNAME: ${{ inputs.username || github.repository_owner }}
       # Defeats the 10-minute response cache, so we test what was just deployed.
       CACHE_BUST: ${{ github.run_id }}-${{ github.run_attempt }}
     steps:
@@ -46,6 +46,7 @@ jobs:
             local sep='?' url status attempt
             if [[ $path == *'?'* ]]; then sep='&'; fi
             url="$BASE_URL$path${sep}cachebust=$CACHE_BUST"
+            echo "checking $name: $url"
 
             for attempt in 1 2 3 4 5; do
               status=$(curl --silent --show-error --location --max-time 30 \
@@ -70,8 +71,8 @@ jobs:
           }
 
           check "landing page" "/" "GitHub Readme Stats" || failures=$((failures + 1))
-          check "stats card" "/api?username=$USERNAME" "</svg>" || failures=$((failures + 1))
-          check "top languages card" "/api/top-langs?username=$USERNAME" "</svg>" || failures=$((failures + 1))
+          check "stats card" "/api?username=$CARD_USERNAME" "</svg>" || failures=$((failures + 1))
+          check "top languages card" "/api/top-langs?username=$CARD_USERNAME" "</svg>" || failures=$((failures + 1))
           check "PAT health" "/api/status/up?type=json" '{"up":true}' || failures=$((failures + 1))
 
           if [[ $failures -gt 0 ]]; then
