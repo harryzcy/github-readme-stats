@@ -15,6 +15,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     name: Deploy
+    if: github.event_name == 'push'
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -36,6 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Verify deployment
     needs: deploy
+    if: ${{ !cancelled() && needs.deploy.result != 'failure' }}
     env:
       BASE_URL: https://github-readme-stats.zcy.dev
       USERNAME: ${{ inputs.username || github.repository_owner }}
