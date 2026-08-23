@@ -39,7 +39,7 @@ jobs:
           id=$(gh api "repos/$GITHUB_REPOSITORY/deployments" --jq .id --input - <<JSON
           {
             "ref": "$GITHUB_SHA",
-            "environment": "production",
+            "environment": "Cloudflare Production",
             "description": "Cloudflare Workers",
             "auto_merge": false,
             "required_contexts": []
