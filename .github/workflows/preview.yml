@@ -5,6 +5,11 @@ on:
     branches:
       - cloudflare
 
+# Avoids redeploying a PR through a dependabot rebase storm.
+concurrency:
+  group: preview-${{ github.event.number }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
