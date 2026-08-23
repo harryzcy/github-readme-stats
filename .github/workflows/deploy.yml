@@ -34,62 +34,11 @@ jobs:
           packageManager: pnpm
 
   verify:
-    runs-on: ubuntu-latest
     name: Verify deployment
     needs: deploy
+    # A skipped deploy would otherwise skip this too, and manual runs skip it.
     if: ${{ !cancelled() && needs.deploy.result != 'failure' }}
-    env:
-      BASE_URL: https://github-readme-stats.zcy.dev
-      USERNAME: ${{ inputs.username || github.repository_owner }}
-      # Defeats the 10-minute response cache, so we test what was just deployed.
-      CACHE_BUST: ${{ github.run_id }}-${{ github.run_attempt }}
-    steps:
-      - name: Smoke test the public instance
-        run: |
-          set -euo pipefail
-
-          body=$(mktemp)
-          failures=0
-
-          # Requests the given path and checks the response is a 200 containing
-          # $pattern. Retries with a growing delay: a fresh deployment takes a
-          # moment to reach every edge location.
-          check() {
-            local name=$1 path=$2 pattern=$3
-            local sep='?' url status attempt
-            if [[ $path == *'?'* ]]; then sep='&'; fi
-            url="$BASE_URL$path${sep}cachebust=$CACHE_BUST"
-
-            for attempt in 1 2 3 4 5; do
-              status=$(curl --silent --show-error --location --max-time 30 \
-                --write-out '%{http_code}' --output "$body" "$url" || echo 000)
-
-              # Card handlers answer 200 with an error card rather than failing,
-              # so a healthy status code alone doesn't mean the card rendered.
-              if [[ $status == 200 ]] && ! grep -qF 'Something went wrong!' "$body" &&
-                grep -qF "$pattern" "$body"; then
-                echo "ok: $name"
-                return 0
-              fi
-
-              echo "attempt $attempt/5 failed: $name (HTTP $status)"
-              sleep $((attempt * 5))
-            done
-
-            echo "::error::$name failed for $url (HTTP $status)"
-            head -c 500 "$body"
-            echo
-            return 1
-          }
-
-          check "landing page" "/" "GitHub Readme Stats" || failures=$((failures + 1))
-          check "stats card" "/api?username=$USERNAME" "</svg>" || failures=$((failures + 1))
-          check "top languages card" "/api/top-langs?username=$USERNAME" "</svg>" || failures=$((failures + 1))
-          check "PAT health" "/api/status/up?type=json" '{"up":true}' || failures=$((failures + 1))
-
-          if [[ $failures -gt 0 ]]; then
-            echo "::error::$failures check(s) failed against $BASE_URL"
-            exit 1
-          fi
-
-          echo "Deployment verified: $BASE_URL"
+    uses: ./.github/workflows/verify.yml
+    with:
+      base-url: https://github-readme-stats.zcy.dev
+      username: ${{ inputs.username }}

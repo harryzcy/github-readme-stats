@@ -9,6 +9,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     name: Deploy
+    outputs:
+      # The preview URL of the version just uploaded.
+      preview-url: ${{ steps.deploy.outputs.deployment-url }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -20,9 +23,17 @@ jobs:
         run: pnpm run build:packages
 
       - name: Deploy
+        id: deploy
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: apps/cloudflare
           packageManager: pnpm
           command: versions upload --preview-alias pr-${{ github.event.number }}
+
+  verify:
+    name: Verify deployment
+    needs: deploy
+    uses: ./.github/workflows/verify.yml
+    with:
+      base-url: ${{ needs.deploy.outputs.preview-url }}
