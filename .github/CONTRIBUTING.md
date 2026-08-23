@@ -10,7 +10,22 @@ pnpm run build:packages
 pnpm run dev:frontend
 ```
 
-The easiest way to run and test the project is to deploy it to Vercel as described in the [deployment guide](../docs/deploy.md).
+### Backend server
+
+The wizard renders its previews in the browser, but the docs reference cards by
+root-relative path (`/api?username=...`), so those images only load with the backend running:
+
+```bash
+pnpm run dev:backend # card endpoints on :9000, proxied by the frontend dev server
+```
+
+It needs a [Personal Access Token](https://github-stats-extended.vercel.app/frontend/docs/deploy/#first-step-get-your-personal-access-token-pat) in `apps/backend/.env` (the SQL database is optional):
+
+```
+PAT_1=your_token_here
+```
+
+You can also deploy to Vercel and test there, as described in the [deployment guide](https://github-stats-extended.vercel.app/frontend/docs/deploy/).
 
 ## Tests
 
@@ -46,13 +61,13 @@ Never edit the generated files by hand — change the `.graphql` file and regene
 
 ## Themes Contribution
 
-We have stopped the addition of new themes to decrease maintenance efforts. If you are considering contributing your theme just because you are using it personally, then instead of adding it to our theme collection, you can use card [customization options](../docs/advanced_documentation.md#customization).
+We have stopped the addition of new themes to decrease maintenance efforts. If you are considering contributing your theme just because you are using it personally, then instead of adding it to our theme collection, you can use card [customization options](https://github-stats-extended.vercel.app/frontend/docs/customization/common-options/).
 
 ## Translations Contribution
 
-GitHub-Stats-Extended supports multiple languages. If we are missing your language, you can contribute it! You can check the currently supported languages [here](../docs/advanced_documentation.md#available-locales).
+GitHub-Stats-Extended supports multiple languages. If we are missing your language, you can contribute it! You can check the currently supported languages [here](https://github-stats-extended.vercel.app/frontend/docs/customization/locales/).
 
-To contribute your language you need to edit the [backend/src/translations.js](../backend/src/translations.js) file and add a new property to each object where the key is the language code in [ISO 639-1 standard](https://www.andiamo.co.uk/resources/iso-language-codes/) and the value is the translated string.
+To contribute your language you need to edit the [packages/core/src/translations.ts](../packages/core/src/translations.ts) file and add a new property to each object where the key is the language code in [ISO 639-1 standard](https://www.andiamo.co.uk/resources/iso-language-codes/) and the value is the translated string.
 
 ## Any contributions you make will be under the MIT Software License
 

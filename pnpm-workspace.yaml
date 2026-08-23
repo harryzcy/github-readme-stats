@@ -17,7 +17,6 @@ catalog:
   "@vitest/coverage-v8": 4.1.10
   axios: ^1.18.1
   jsdom: 29.1.1
-  vite: 8.1.5
   vitest: 4.1.10
 
 overrides:
@@ -25,6 +24,10 @@ overrides:
   # Updates against the existing lockfile keep 1.32.0 either way, so this only guards re-resolution.
   # Enforced by scripts/assert-deduped.ts; drop it there too once @tailwindcss/node pins a version vite also resolves to.
   "vite>lightningcss": 1.32.0
+  # @astrojs/react still asks for @vitejs/plugin-react ^5, which compiles through Babel and so
+  # pulls in semver@6.3.1 — rejected by `trustPolicy: no-downgrade`. Version 6 dropped Babel for
+  # oxc and is what the rest of the repo already resolves to. Drop this once @astrojs/react moves to ^6.
+  "@astrojs/react>@vitejs/plugin-react": 6.0.3
 
 # Deliberately stricter than pnpm 11's 1440 default (7 days vs 1)
 minimumReleaseAge: 10080

@@ -29,6 +29,7 @@
     "build:packages": "turbo run build --filter=./packages/*",
     "build:frontend": "turbo run build --filter=./apps/frontend",
     "dev:frontend": "pnpm run --filter=./apps/frontend dev",
+    "dev:backend": "pnpm run --filter=./apps/backend dev",
     "test": "vitest",
     "test:coverage": "vitest --config vitest.config.coverage.ts",
     "format": "prettier --write .",
@@ -38,7 +39,8 @@
     "lint:eslint:fix": "eslint --fix",
     "lint:knip": "knip",
     "lint:deps": "node scripts/assert-deduped.ts",
-    "typecheck": "turbo run typecheck && tsc -p tsconfig.scripts.json"
+    "typecheck": "turbo run typecheck && tsc -p tsconfig.scripts.json",
+    "generate-theme-readme": "node scripts/generate-theme-readme"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,css,json,jsonc,yaml,yml}": "prettier --write"

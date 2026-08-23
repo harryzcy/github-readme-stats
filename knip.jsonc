@@ -12,7 +12,8 @@
       "entry": ["api-renamed/*.js", "express.js"]
     },
     "apps/frontend": {
-      "entry": ["src/wakatime-override.ts"]
+      "entry": ["src/wakatime-override.ts"],
+      "vitest": { "entry": ["src/**/*.test.{ts,tsx}"] }
     }
   }
 }
