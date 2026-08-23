@@ -4,11 +4,23 @@ on:
   push:
     branches:
       - cloudflare
+  workflow_dispatch:
+    inputs:
+      username:
+        description: "GitHub username the smoke test renders cards for"
+        required: false
+        default: ""
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     name: Deploy
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      deployments: write
+    outputs:
+      deployment: ${{ steps.deployment.outputs.id }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -19,9 +31,54 @@ jobs:
       - name: Build packages
         run: pnpm run build:packages
 
+      - name: Start deployment
+        id: deployment
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          id=$(gh api "repos/$GITHUB_REPOSITORY/deployments" --jq .id --input - <<JSON
+          {
+            "ref": "$GITHUB_SHA",
+            "environment": "Cloudflare Production",
+            "description": "Cloudflare Workers",
+            "auto_merge": false,
+            "required_contexts": []
+          }
+          JSON
+          )
+          echo "id=$id" >>"$GITHUB_OUTPUT"
+          gh api "repos/$GITHUB_REPOSITORY/deployments/$id/statuses" -f state=in_progress
+
       - name: Deploy
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: apps/cloudflare
           packageManager: pnpm
+
+  verify:
+    name: Verify deployment
+    needs: deploy
+    if: ${{ !cancelled() && needs.deploy.result != 'failure' }}
+    uses: ./.github/workflows/verify.yml
+    with:
+      base-url: https://github-readme-stats.zcy.dev
+      username: ${{ inputs.username }}
+
+  status:
+    runs-on: ubuntu-latest
+    name: Deployment status
+    needs: [deploy, verify]
+    if: ${{ !cancelled() && needs.deploy.outputs.deployment }}
+    permissions:
+      deployments: write
+    steps:
+      - name: Report deployment status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOYMENT: ${{ needs.deploy.outputs.deployment }}
+          STATE: ${{ needs.verify.result == 'success' && 'success' || 'failure' }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/deployments/$DEPLOYMENT/statuses" \
+            -f state="$STATE" \
+            -f environment_url=https://github-readme-stats.zcy.dev

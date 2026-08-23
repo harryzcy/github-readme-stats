@@ -5,10 +5,21 @@ on:
     branches:
       - cloudflare
 
+# Avoids redeploying a PR through a dependabot rebase storm.
+concurrency:
+  group: preview-${{ github.event.number }}
+  cancel-in-progress: true
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     name: Deploy
+    permissions:
+      contents: read
+      deployments: write
+    outputs:
+      preview-url: ${{ steps.deploy.outputs.deployment-url }}
+      deployment: ${{ steps.deployment.outputs.id }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -19,10 +30,59 @@ jobs:
       - name: Build packages
         run: pnpm run build:packages
 
+      - name: Start deployment
+        id: deployment
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          id=$(gh api "repos/$GITHUB_REPOSITORY/deployments" --jq .id --input - <<JSON
+          {
+            "ref": "$HEAD_SHA",
+            "environment": "Cloudflare Preview",
+            "description": "Cloudflare Workers preview",
+            "auto_merge": false,
+            "required_contexts": [],
+            "transient_environment": true,
+            "production_environment": false
+          }
+          JSON
+          )
+          echo "id=$id" >>"$GITHUB_OUTPUT"
+          gh api "repos/$GITHUB_REPOSITORY/deployments/$id/statuses" -f state=in_progress
+
       - name: Deploy
+        id: deploy
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           workingDirectory: apps/cloudflare
           packageManager: pnpm
           command: versions upload --preview-alias pr-${{ github.event.number }}
+
+  verify:
+    name: Verify deployment
+    needs: deploy
+    uses: ./.github/workflows/verify.yml
+    with:
+      base-url: ${{ needs.deploy.outputs.preview-url }}
+
+  status:
+    runs-on: ubuntu-latest
+    name: Deployment status
+    needs: [deploy, verify]
+    if: ${{ !cancelled() && needs.deploy.outputs.deployment }}
+    permissions:
+      deployments: write
+    steps:
+      - name: Report deployment status
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DEPLOYMENT: ${{ needs.deploy.outputs.deployment }}
+          STATE: ${{ needs.verify.result == 'success' && 'success' || 'failure' }}
+          PREVIEW_URL: ${{ needs.deploy.outputs.preview-url }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/deployments/$DEPLOYMENT/statuses" \
+            -f state="$STATE" \
+            -f environment_url="$PREVIEW_URL"
