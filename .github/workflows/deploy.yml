@@ -4,6 +4,12 @@ on:
   push:
     branches:
       - cloudflare
+  workflow_dispatch:
+    inputs:
+      username:
+        description: "GitHub username the smoke test renders cards for"
+        required: false
+        default: ""
 
 jobs:
   deploy:
@@ -32,9 +38,8 @@ jobs:
     needs: deploy
     env:
       BASE_URL: https://github-readme-stats.zcy.dev
-      # Responses are cached for 10 minutes, so every request carries a
-      # run-unique parameter to make sure we exercise the version just deployed
-      # instead of one served from the edge cache.
+      USERNAME: ${{ inputs.username || github.repository_owner }}
+      # Defeats the 10-minute response cache, so we test what was just deployed.
       CACHE_BUST: ${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Smoke test the public instance
@@ -76,8 +81,8 @@ jobs:
           }
 
           check "landing page" "/" "GitHub Readme Stats" || failures=$((failures + 1))
-          check "stats card" "/api?username=harryzcy" "</svg>" || failures=$((failures + 1))
-          check "top languages card" "/api/top-langs?username=harryzcy" "</svg>" || failures=$((failures + 1))
+          check "stats card" "/api?username=$USERNAME" "</svg>" || failures=$((failures + 1))
+          check "top languages card" "/api/top-langs?username=$USERNAME" "</svg>" || failures=$((failures + 1))
           check "PAT health" "/api/status/up?type=json" '{"up":true}' || failures=$((failures + 1))
 
           if [[ $failures -gt 0 ]]; then
