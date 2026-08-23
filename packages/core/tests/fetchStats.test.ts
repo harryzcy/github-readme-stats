@@ -17,6 +17,9 @@ const data_stats = {
     user: {
       name: "Anurag Hazra",
       repositoriesContributedTo: { totalCount: 61 },
+      contributionsCollection: {
+        contributionYears: [2022, 2024],
+      },
       commits: {
         totalCommitContributions: 100,
       },
@@ -104,6 +107,15 @@ const data_repo_zero_stars = {
   },
 };
 
+const data_contributions = {
+  data: {
+    user: {
+      year_2022: { contributionCalendar: { totalContributions: 150 } },
+      year_2024: { contributionCalendar: { totalContributions: 200 } },
+    },
+  },
+};
+
 const error = {
   errors: [
     {
@@ -128,6 +140,9 @@ beforeEach(() => {
 
     if (req.variables?.startTime?.startsWith("2003")) {
       return [200, data_year2003];
+    }
+    if (req.query.includes("contributionCalendar")) {
+      return [200, data_contributions];
     }
     return [
       200,
@@ -172,6 +187,7 @@ describe("Test fetchStats", () => {
       totalPRsReviewed: 0,
       totalIssuesAuthored: 0,
       totalIssuesCommented: 0,
+      totalContributions: 0,
       rank,
     });
   });
@@ -213,6 +229,7 @@ describe("Test fetchStats", () => {
       totalPRsReviewed: 0,
       totalIssuesAuthored: 0,
       totalIssuesCommented: 0,
+      totalContributions: 0,
       rank,
     });
   });
@@ -262,6 +279,7 @@ describe("Test fetchStats", () => {
       totalPRsReviewed: 0,
       totalIssuesAuthored: 0,
       totalIssuesCommented: 0,
+      totalContributions: 0,
       rank,
     });
   });
@@ -320,6 +338,7 @@ describe("Test fetchStats", () => {
       totalPRsReviewed: 0,
       totalIssuesAuthored: 0,
       totalIssuesCommented: 0,
+      totalContributions: 0,
       rank,
     });
   });
@@ -357,6 +376,7 @@ describe("Test fetchStats", () => {
       totalPRsReviewed: 0,
       totalIssuesAuthored: 0,
       totalIssuesCommented: 0,
+      totalContributions: 0,
       rank,
     });
   });
@@ -394,6 +414,7 @@ describe("Test fetchStats", () => {
       totalPRsReviewed: 0,
       totalIssuesAuthored: 0,
       totalIssuesCommented: 0,
+      totalContributions: 0,
       rank,
     });
   });
@@ -431,6 +452,7 @@ describe("Test fetchStats", () => {
       totalPRsReviewed: 0,
       totalIssuesAuthored: 0,
       totalIssuesCommented: 0,
+      totalContributions: 0,
       rank,
     });
   });
@@ -510,6 +532,7 @@ describe("Test fetchStats", () => {
       totalPRsReviewed: 0,
       totalIssuesAuthored: 0,
       totalIssuesCommented: 0,
+      totalContributions: 0,
       rank,
     });
   });
@@ -544,6 +567,7 @@ describe("Test fetchStats", () => {
       totalPRsReviewed: 0,
       totalIssuesAuthored: 0,
       totalIssuesCommented: 0,
+      totalContributions: 0,
       rank,
     });
   });
@@ -587,8 +611,108 @@ describe("Test fetchStats", () => {
       totalPRsAuthored: 0,
       totalPRsCommented: 0,
       totalPRsReviewed: 0,
+      totalContributions: 0,
       rank,
     });
+  });
+
+  it("should fetch total contributions when include_contributions is true", async () => {
+    const stats = await fetchStats(
+      "anuraghazra",
+      false,
+      [],
+      false,
+      false,
+      false,
+      undefined,
+      [],
+      [],
+      false,
+      false,
+      false,
+      false,
+      false,
+      [],
+      true, // include_contributions
+    );
+
+    expect(stats.totalContributions).toBe(350);
+  });
+
+  it("should throw when the contributions query returns an error", async () => {
+    mock.onPost("https://api.github.com/graphql").reply((cfg) => {
+      const req = JSON.parse(cfg.data as string) as { query: string };
+      if (req.query.includes("contributionCalendar")) {
+        return [
+          200,
+          {
+            data: null,
+            errors: [{ message: "Some test GraphQL error" }],
+          },
+        ];
+      }
+      return [
+        200,
+        req.query.includes("totalCommitContributions") ? data_stats : data_repo,
+      ];
+    });
+
+    await expect(
+      fetchStats(
+        "anuraghazra",
+        false,
+        [],
+        false,
+        false,
+        false,
+        undefined,
+        [],
+        [],
+        false,
+        false,
+        false,
+        false,
+        false,
+        [],
+        true, // include_contributions
+      ),
+    ).rejects.toThrow("Some test GraphQL error");
+  });
+
+  it("should throw a generic error when the contributions query returns an error without a message", async () => {
+    mock.onPost("https://api.github.com/graphql").reply((cfg) => {
+      const req = JSON.parse(cfg.data as string) as { query: string };
+      if (req.query.includes("contributionCalendar")) {
+        return [200, { data: null, errors: [{ type: "SOME_ERROR" }] }];
+      }
+      return [
+        200,
+        req.query.includes("totalCommitContributions") ? data_stats : data_repo,
+      ];
+    });
+
+    await expect(
+      fetchStats(
+        "anuraghazra",
+        false,
+        [],
+        false,
+        false,
+        false,
+        undefined,
+        [],
+        [],
+        false,
+        false,
+        false,
+        false,
+        false,
+        [],
+        true, // include_contributions
+      ),
+    ).rejects.toThrow(
+      "Something went wrong while trying to retrieve the contributions data using the GraphQL API.",
+    );
   });
 
   it("should return correct data when user don't have any pull requests", async () => {
@@ -624,6 +748,7 @@ describe("Test fetchStats", () => {
       totalPRsAuthored: 0,
       totalPRsCommented: 0,
       totalPRsReviewed: 0,
+      totalContributions: 0,
       rank,
     });
   });
