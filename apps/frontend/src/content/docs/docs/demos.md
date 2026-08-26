@@ -4,43 +4,53 @@ title: Demo Gallery
 
 ## Default
 
-![Anurag's GitHub stats](/api?username=anuraghazra)
+<img class="card-preview-light" src="/api?username=anuraghazra&theme=light_github" alt="Anurag's GitHub stats" />
+<img class="card-preview-dark" src="/api?username=anuraghazra&theme=dark_github" alt="Anurag's GitHub stats" />
 
 ## Hiding specific stats
 
-![Anurag's GitHub stats](/api?username=anuraghazra&hide=contribs,issues)
+<img class="card-preview-light" src="/api?username=anuraghazra&hide=contribs,issues&theme=light_github" alt="Anurag's GitHub stats" />
+<img class="card-preview-dark" src="/api?username=anuraghazra&hide=contribs,issues&theme=dark_github" alt="Anurag's GitHub stats" />
 
 ## Showing additional stats
 
-![Anurag's GitHub stats](/api?username=anuraghazra&show_icons=true&show=reviews,discussions_started,discussions_answered,prs_merged,prs_merged_percentage,prs_commented,prs_reviewed,issues_commented)
+<img class="card-preview-light" src="/api?username=anuraghazra&show_icons=true&show=contributions,reviews,discussions_started,discussions_answered,prs_merged,prs_merged_percentage,prs_commented,prs_reviewed,issues_commented&theme=light_github" alt="Anurag's GitHub stats" />
+<img class="card-preview-dark" src="/api?username=anuraghazra&show_icons=true&show=contributions,reviews,discussions_started,discussions_answered,prs_merged,prs_merged_percentage,prs_commented,prs_reviewed,issues_commented&theme=dark_github" alt="Anurag's GitHub stats" />
 
 ## Showing stats for a specific repository
 
-![Anurag's GitHub stats for anuraghazra/github-readme-stats](/api?username=anuraghazra&repo=anuraghazra/github-readme-stats&hide=prs,issues,stars,commits,contribs&show=prs_authored,prs_commented,prs_reviewed,issues_authored,issues_commented&hide_rank=true&custom_title=Anurag%27s%20Stats%20for%20github-readme-stats&card_width=370)
+<img class="card-preview-light" src="/api?username=anuraghazra&repo=anuraghazra/github-readme-stats&hide=prs,issues,stars,commits,contribs&show=prs_authored,prs_commented,prs_reviewed,issues_authored,issues_commented&hide_rank=true&custom_title=Anurag%27s%20Stats%20for%20github-readme-stats&card_width=370&theme=light_github" alt="Anurag's GitHub stats for anuraghazra/github-readme-stats" />
+<img class="card-preview-dark" src="/api?username=anuraghazra&repo=anuraghazra/github-readme-stats&hide=prs,issues,stars,commits,contribs&show=prs_authored,prs_commented,prs_reviewed,issues_authored,issues_commented&hide_rank=true&custom_title=Anurag%27s%20Stats%20for%20github-readme-stats&card_width=370&theme=dark_github" alt="Anurag's GitHub stats for anuraghazra/github-readme-stats" />
 
 ## Showing stats for a specific organization
 
-![Anurag's GitHub stats for razorpay](/api?username=anuraghazra&owner=razorpay&hide=prs,issues,stars,commits,contribs&show=prs_authored,prs_commented,prs_reviewed,issues_authored,issues_commented&hide_rank=true&custom_title=Anurag%27s%20Stats%20for%20razorpay&card_width=370)
+<img class="card-preview-light" src="/api?username=anuraghazra&owner=razorpay&hide=prs,issues,stars,commits,contribs&show=prs_authored,prs_commented,prs_reviewed,issues_authored,issues_commented&hide_rank=true&custom_title=Anurag%27s%20Stats%20for%20razorpay&card_width=370&theme=light_github" alt="Anurag's GitHub stats for razorpay" />
+<img class="card-preview-dark" src="/api?username=anuraghazra&owner=razorpay&hide=prs,issues,stars,commits,contribs&show=prs_authored,prs_commented,prs_reviewed,issues_authored,issues_commented&hide_rank=true&custom_title=Anurag%27s%20Stats%20for%20razorpay&card_width=370&theme=dark_github" alt="Anurag's GitHub stats for razorpay" />
 
 ## Showing icons
 
-![Anurag's GitHub stats](/api?username=anuraghazra&hide=issues&show_icons=true)
+<img class="card-preview-light" src="/api?username=anuraghazra&hide=issues&show_icons=true&theme=light_github" alt="Anurag's GitHub stats" />
+<img class="card-preview-dark" src="/api?username=anuraghazra&hide=issues&show_icons=true&theme=dark_github" alt="Anurag's GitHub stats" />
 
 ## Shows GitHub logo instead rank level
 
-![Anurag's GitHub stats](/api?username=anuraghazra&rank_icon=github)
+<img class="card-preview-light" src="/api?username=anuraghazra&rank_icon=github&theme=light_github" alt="Anurag's GitHub stats" />
+<img class="card-preview-dark" src="/api?username=anuraghazra&rank_icon=github&theme=dark_github" alt="Anurag's GitHub stats" />
 
 ## Shows user rank percentile instead of rank level
 
-![Anurag's GitHub stats](/api?username=anuraghazra&rank_icon=percentile)
+<img class="card-preview-light" src="/api?username=anuraghazra&rank_icon=percentile&theme=light_github" alt="Anurag's GitHub stats" />
+<img class="card-preview-dark" src="/api?username=anuraghazra&rank_icon=percentile&theme=dark_github" alt="Anurag's GitHub stats" />
 
 ## Customize Border Color
 
-![Anurag's GitHub stats](/api?username=anuraghazra&border_color=2e4058)
+<img class="card-preview-light" src="/api?username=anuraghazra&border_color=2e4058&theme=light_github" alt="Anurag's GitHub stats" />
+<img class="card-preview-dark" src="/api?username=anuraghazra&border_color=2e4058&theme=dark_github" alt="Anurag's GitHub stats" />
 
 ## Include All Commits
 
-![Anurag's GitHub stats](/api?username=anuraghazra&include_all_commits=true)
+<img class="card-preview-light" src="/api?username=anuraghazra&include_all_commits=true&theme=light_github" alt="Anurag's GitHub stats" />
+<img class="card-preview-dark" src="/api?username=anuraghazra&include_all_commits=true&theme=dark_github" alt="Anurag's GitHub stats" />
 
 ## Themes
 
@@ -58,7 +68,8 @@ Choose from any of the [default themes](/frontend/docs/customization/themes/)
 
 ## Setting card locale
 
-![Anurag's GitHub stats](/api?username=anuraghazra&locale=es)
+<img class="card-preview-light" src="/api?username=anuraghazra&locale=es&theme=light_github" alt="Anurag's GitHub stats" />
+<img class="card-preview-dark" src="/api?username=anuraghazra&locale=es&theme=dark_github" alt="Anurag's GitHub stats" />
 
 ## Customizing repo card
 
@@ -66,7 +77,8 @@ Choose from any of the [default themes](/frontend/docs/customization/themes/)
 
 ## Gist card
 
-![Gist Card](/api/gist?id=bbfce31e0217a3689c8d961a356cb10d)
+<img class="card-preview-light" src="/api/gist?id=bbfce31e0217a3689c8d961a356cb10d&theme=light_github_repocard" alt="Gist Card" />
+<img class="card-preview-dark" src="/api/gist?id=bbfce31e0217a3689c8d961a356cb10d&theme=dark_github_repocard" alt="Gist Card" />
 
 ## Customizing gist card
 
@@ -74,8 +86,10 @@ Choose from any of the [default themes](/frontend/docs/customization/themes/)
 
 ## Top languages
 
-![Top Langs](/api/top-langs?username=anuraghazra)
+<img class="card-preview-light" src="/api/top-langs?username=anuraghazra&theme=light_github" alt="Top Langs" />
+<img class="card-preview-dark" src="/api/top-langs?username=anuraghazra&theme=dark_github" alt="Top Langs" />
 
 ## WakaTime card
 
-![Alan's WakaTime stats](/api/wakatime?username=alan)
+<img class="card-preview-light" src="/api/wakatime?username=alan&theme=light_github" alt="Alan's WakaTime stats" />
+<img class="card-preview-dark" src="/api/wakatime?username=alan&theme=dark_github" alt="Alan's WakaTime stats" />

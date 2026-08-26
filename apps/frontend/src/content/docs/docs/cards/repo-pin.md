@@ -34,16 +34,20 @@ You can customize the appearance and behavior of the pinned repository card usin
 
 ## Demo
 
-![Readme Card](/api/pin?username=anuraghazra&repo=github-readme-stats)
+<img class="card-preview-light" src="/api/pin?username=anuraghazra&repo=github-readme-stats&theme=light_github_repocard" alt="Readme Card" />
+<img class="card-preview-dark" src="/api/pin?username=anuraghazra&repo=github-readme-stats&theme=dark_github_repocard" alt="Readme Card" />
 
 Use [show\_owner](#options) query option to include the repo's owner username:
 
-![Readme Card](/api/pin?username=anuraghazra&repo=github-readme-stats&show_owner=true)
+<img class="card-preview-light" src="/api/pin?username=anuraghazra&repo=github-readme-stats&show_owner=true&theme=light_github_repocard" alt="Readme Card" />
+<img class="card-preview-dark" src="/api/pin?username=anuraghazra&repo=github-readme-stats&show_owner=true&theme=dark_github_repocard" alt="Readme Card" />
 
 Use [show](#options) query option to display the user's contributions to the repository:
 
-![Readme Card](/api/pin?username=anuraghazra&repo=github-readme-stats&show=prs_authored,prs_commented,prs_reviewed,issues_authored,issues_commented)
+<img class="card-preview-light" src="/api/pin?username=anuraghazra&repo=github-readme-stats&show=prs_authored,prs_commented,prs_reviewed,issues_authored,issues_commented&theme=light_github_repocard" alt="Readme Card" />
+<img class="card-preview-dark" src="/api/pin?username=anuraghazra&repo=github-readme-stats&show=prs_authored,prs_commented,prs_reviewed,issues_authored,issues_commented&theme=dark_github_repocard" alt="Readme Card" />
 
 You can also specify the `repo` parameter in the form `<user_or_organization>/<repository>` to pin a repository from any user or organization, not just your own. This allows you to showcase repositories you contributed to, regardless of ownership.
 
-![Readme Card](/api/pin?username=anuraghazra&repo=statykjs/statyk&show_owner=true&show=prs_authored,prs_commented,prs_reviewed,issues_authored,issues_commented)
+<img class="card-preview-light" src="/api/pin?username=anuraghazra&repo=statykjs/statyk&show_owner=true&show=prs_authored,prs_commented,prs_reviewed,issues_authored,issues_commented&theme=light_github_repocard" alt="Readme Card" />
+<img class="card-preview-dark" src="/api/pin?username=anuraghazra&repo=statykjs/statyk&show_owner=true&show=prs_authored,prs_commented,prs_reviewed,issues_authored,issues_commented&theme=dark_github_repocard" alt="Readme Card" />

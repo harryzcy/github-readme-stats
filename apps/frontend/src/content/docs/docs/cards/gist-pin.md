@@ -25,8 +25,10 @@ You can customize the appearance and behavior of the gist card using the [common
 
 ## Demo
 
-![Gist Card](/api/gist?id=bbfce31e0217a3689c8d961a356cb10d)
+<img class="card-preview-light" src="/api/gist?id=bbfce31e0217a3689c8d961a356cb10d&theme=light_github_repocard" alt="Gist Card" />
+<img class="card-preview-dark" src="/api/gist?id=bbfce31e0217a3689c8d961a356cb10d&theme=dark_github_repocard" alt="Gist Card" />
 
 Use [show\_owner](#options) query option to include the gist's owner username
 
-![Gist Card](/api/gist?id=bbfce31e0217a3689c8d961a356cb10d&show_owner=true)
+<img class="card-preview-light" src="/api/gist?id=bbfce31e0217a3689c8d961a356cb10d&show_owner=true&theme=light_github_repocard" alt="Gist Card" />
+<img class="card-preview-dark" src="/api/gist?id=bbfce31e0217a3689c8d961a356cb10d&show_owner=true&theme=dark_github_repocard" alt="Gist Card" />
