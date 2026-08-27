@@ -28,11 +28,13 @@
     "typecheck": "turbo run typecheck && tsc -p tsconfig.scripts.json",
     "build:frontend": "turbo run build --filter=./apps/frontend",
     "dev:frontend": "pnpm run --filter=./apps/frontend dev",
+    "dev:backend": "pnpm run --filter=./apps/backend dev",
     "lint:eslint": "eslint",
     "lint:eslint:fix": "eslint --fix",
     "test:coverage": "vitest --config vitest.config.coverage.ts",
     "lint:knip": "knip",
-    "lint:deps": "node scripts/assert-deduped.ts"
+    "lint:deps": "node scripts/assert-deduped.ts",
+    "generate-theme-readme": "node scripts/generate-theme-readme"
   },
   "author": "Anurag Hazra",
   "license": "MIT",

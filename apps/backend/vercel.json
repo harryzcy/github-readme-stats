@@ -4,7 +4,7 @@
   "redirects": [
     {
       "source": "/",
-      "destination": "https://github.com/harryzcy/github-readme-stats"
+      "destination": "/frontend/docs/"
     }
   ]
 }
