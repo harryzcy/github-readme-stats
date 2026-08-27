@@ -12,7 +12,7 @@ This is a [Cloudflare Workers](https://workers.cloudflare.com/) deployment of [G
 - [Quick Start](#quick-start)
 - [Migration](#migration)
 - [Card Types](#card-types)
-- [Advanced Customization](#advanced-customization)
+- [Documentation](#documentation)
 - [Run It Yourself](#run-it-yourself)
 - [Acknowledgements](#acknowledgements)
 
@@ -62,11 +62,11 @@ Parameters are compatible with upstream. See [Compatibility Notes](docs/fork.md#
 
   [![GitHub stats](https://github-readme-stats.zcy.dev/api?username=anuraghazra&show_icons=true&theme=calm&rank_icon=github&include_all_commits=true&custom_title=Anurag's+Stats&disable_animations=true&number_format=long&show=prs_merged_percentage,prs_reviewed)](https://github-readme-stats.zcy.dev/api?username=anuraghazra&show_icons=true&theme=calm&rank_icon=github&include_all_commits=true&custom_title=Anurag's+Stats&disable_animations=true&number_format=long&show=prs_merged_percentage,prs_reviewed)
 
-## Advanced Customization
+## Documentation
 
 See the [advanced documentation](docs/advanced_documentation.md) for the full parameter reference. Its examples use the upstream instance's domain; substitute `github-readme-stats.zcy.dev` to run them here.
 
-To build a card visually, the [GitHub-Stats-Extended Wizard](https://github-stats-extended.vercel.app/frontend) generates markdown you can point at either instance.
+To build a card visually, the [card wizard](https://github-stats-extended.vercel.app/frontend) generates markdown you can point at either instance.
 
 ## Run It Yourself
 

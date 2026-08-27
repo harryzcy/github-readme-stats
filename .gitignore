@@ -16,6 +16,8 @@ apps/backend/vercel_token
 apps/backend-copy
 
 apps/frontend/.env
+# Astro's generated types and content store
+apps/frontend/.astro
 
 
 .turbo

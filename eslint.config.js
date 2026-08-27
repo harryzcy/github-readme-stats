@@ -26,6 +26,8 @@ export default defineConfig(
   {
     extends: [importX.flatConfigs.recommended, importX.flatConfigs.typescript],
     settings: {
+      // Astro's virtual modules exist only inside its build, so no resolver can see them.
+      "import-x/core-modules": ["astro:content"],
       "import-x/resolver-next": [
         createTypeScriptImportResolver({
           conditionNames: [
