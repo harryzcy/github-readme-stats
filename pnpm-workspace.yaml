@@ -16,10 +16,10 @@ onlyBuiltDependencies:
   - workerd
 
 catalog:
-  "@vitest/coverage-v8": 4.1.10
+  "@vitest/coverage-v8": 4.1.11
   axios: ^1.19.0
   jsdom: 30.0.1
-  vitest: 4.1.10
+  vitest: 4.1.11
 
 overrides:
   # @tailwindcss/node pins lightningcss exactly while vite floats on ^1.32.0, so a cold re-resolve installs both.
