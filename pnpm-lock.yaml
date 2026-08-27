@@ -176,8 +176,8 @@ importers:
         specifier: ^1.4.17
         version: 1.4.17
       uuid:
-        specifier: ^14.0.1
-        version: 14.0.1
+        specifier: ^14.0.2
+        version: 14.0.2
     devDependencies:
       '@types/react':
         specifier: 19.2.18
@@ -3218,8 +3218,8 @@ packages:
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
-  uuid@14.0.1:
-    resolution: {integrity: sha512-6ZxzVpzDXDa3bJWaHilVayA+BH/1zmxCJoVgvmqJnid/gPoKHxUrS/aC/T6LGQtNHT+XHG9fXPJB4d+IrU30Ew==}
+  uuid@14.0.2:
+    resolution: {integrity: sha512-xZe/16rV4aa+HGSOCiY2YeLT1OybRLrrkL/Rqaq7p7GMVXjFh+6wN4oMYgjFmnSnhY8t6Xpdl2l9qmnHYuMHwQ==}
     hasBin: true
 
   vary@1.1.2:
@@ -6218,7 +6218,7 @@ snapshots:
     dependencies:
       react: 19.2.8
 
-  uuid@14.0.1: {}
+  uuid@14.0.2: {}
 
   vary@1.1.2: {}
 
