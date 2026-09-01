@@ -45,7 +45,7 @@
     "@playwright/test": "1.62.1",
     "@types/node": "24.13.3",
     "@vitest/coverage-v8": "catalog:default",
-    "eslint": "10.9.0",
+    "eslint": "10.9.1",
     "eslint-import-resolver-typescript": "4.4.5",
     "eslint-plugin-import-x": "4.17.1",
     "eslint-plugin-jsdoc": "64.2.1",
@@ -55,7 +55,7 @@
     "prettier": "^3.9.6",
     "turbo": "2.10.11",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.67.0",
+    "typescript-eslint": "8.68.0",
     "vitest": "catalog:default"
   },
   "lint-staged": {
