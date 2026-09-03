@@ -50,30 +50,61 @@ jobs:
             echo "$behind commit(s) behind upstream." >> "$GITHUB_STEP_SUMMARY"
           fi
 
-      - name: Attempt the merge
+      - name: Rehearse the merge
         id: merge
         if: steps.check.outputs.behind != '0'
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -c "$SYNC_BRANCH"
+          # A rehearsal only. The merge commit that lands is built by GitHub in
+          # the next step so that it carries a signature; anything committed on
+          # the runner would be unsigned. --no-commit keeps that impossible.
+          echo "head_sha=$(git rev-parse "upstream/$UPSTREAM_BRANCH")" >> "$GITHUB_OUTPUT"
 
-          if git merge --no-edit "upstream/$UPSTREAM_BRANCH"; then
+          if git merge --no-commit --no-ff "upstream/$UPSTREAM_BRANCH"; then
             echo "clean=true" >> "$GITHUB_OUTPUT"
           else
             echo "clean=false" >> "$GITHUB_OUTPUT"
             # record the conflicting paths before throwing the attempt away
             git diff --name-only --diff-filter=U > /tmp/conflicts.txt
-            git merge --abort
           fi
+          git merge --abort || git reset --hard HEAD
+
+      - name: Merge upstream on GitHub
+        if: steps.merge.outputs.clean == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Reset the sync branch to the base tip. This moves a ref and creates
+          # no commit, so there is nothing here to sign.
+          git push --force-with-lease origin "HEAD:refs/heads/$SYNC_BRANCH"
+
+          # GitHub builds this merge commit server side and signs it with the
+          # web-flow key, which saves re-signing it by hand before merging the
+          # PR. Passing author or committer fields would suppress the signature.
+          if ! merged=$(gh api --method POST "repos/$GH_REPO/merges" \
+            -f base="$SYNC_BRANCH" \
+            -f head="${{ steps.merge.outputs.head_sha }}" \
+            -f commit_message="Merge upstream/$UPSTREAM_BRANCH into $SYNC_BRANCH" 2>&1); then
+            echo "$merged"
+            echo "The merges API refused a merge that rehearsed cleanly." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          # An empty body is 204, meaning nothing to merge, which contradicts
+          # the behind count that got us here.
+          sha=$(printf '%s' "$merged" | jq -r '.sha // empty')
+          if [ -z "$sha" ]; then
+            echo "The merges API reported nothing to merge." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          signed=$(gh api "repos/$GH_REPO/commits/$sha" --jq '.commit.verification.verified')
+          echo "Merged as \`$sha\`, signed by GitHub: $signed" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Open or update the pull request
         if: steps.merge.outputs.clean == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          git push --force-with-lease origin "$SYNC_BRANCH"
-
           body=$(cat <<EOF
           Merges ${{ steps.check.outputs.behind }} commit(s) from [upstream](https://github.com/stats-organization/github-stats-extended).
 
