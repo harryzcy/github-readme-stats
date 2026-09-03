@@ -4,12 +4,18 @@ import githubUsernameRegex from "github-username-regex";
 
 import { calculateRank } from "../calculateRank.js";
 import { getConfig } from "../common/config.js";
+import type { GitHubDateRange } from "../common/date.js";
+import { getGitHubYearRange, toGitHubDateTime } from "../common/date.js";
 import { CustomError, MissingParamError } from "../common/error.js";
 import { wrapTextMultiline } from "../common/fmt.js";
 import { createGraphQLFetcher } from "../common/http.js";
 import type { GraphQLResponse } from "../common/http.js";
 import { logger } from "../common/log.js";
-import { buildSearchFilter, parseOwnerAffiliations } from "../common/ops.js";
+import {
+  buildSearchFilter,
+  chunkArray,
+  parseOwnerAffiliations,
+} from "../common/ops.js";
 import { retryer } from "../common/retryer.js";
 import { buildContributionsDocument } from "../graphql/contributionsDocument.js";
 import {
@@ -21,6 +27,10 @@ import type {
   UserInfoQuery,
   UserInfoQueryVariables,
 } from "../graphql/generated/stats.js";
+import {
+  MAX_REPOSITORIES_LIMIT,
+  buildReposContributedToDocument,
+} from "../graphql/reposContributedToDocument.js";
 
 import type { RepoUserStats, StatsData } from "./types.js";
 
@@ -44,6 +54,7 @@ const reposFetcher = createGraphQLFetcher(UserReposDocument, "bearer");
  * @param variables.includeDiscussionsAnswers Include discussions answers.
  * @param variables.startTime Time to start the count of total commits.
  * @param variables.ownerAffiliations The owner affiliations to filter by. Default: OWNER.
+ * @param variables.includeUserRepositories Whether to include the user's own repositories in the repos contributed to.
  * @param variables.pat PAT override or null.
  * @returns The stats response, with every fetched page's repos merged in.
  *
@@ -57,6 +68,7 @@ const statsFetcher = async ({
   includeDiscussionsAnswers,
   startTime,
   ownerAffiliations,
+  includeUserRepositories,
   pat,
 }: {
   username: string;
@@ -65,6 +77,7 @@ const statsFetcher = async ({
   includeDiscussionsAnswers: boolean;
   startTime: string | undefined;
   ownerAffiliations: UserInfoQueryVariables["ownerAffiliations"];
+  includeUserRepositories: boolean;
   pat: string | null;
 }): Promise<StatsFetcherResponse> => {
   // only the first request carries the stats themselves
@@ -78,6 +91,7 @@ const statsFetcher = async ({
       includeDiscussionsAnswers,
       startTime,
       ownerAffiliations,
+      includeUserRepositories,
     },
     pat,
   );
@@ -276,6 +290,25 @@ const fetchRepoUserStats = async (
 };
 
 /**
+ * Turn a GraphQL `errors` payload into the error to throw.
+ *
+ * @param errors Errors from the response envelope.
+ * @param statusText HTTP status text, used as the error type when GitHub gave a message.
+ * @param fallback Message when GitHub gave none.
+ */
+const graphqlError = (
+  errors: NonNullable<GraphQLResponse<unknown>["data"]["errors"]>,
+  statusText: string,
+  fallback: string,
+): CustomError => {
+  logger.error(errors);
+  const message = errors[0]?.message;
+  return message
+    ? new CustomError(wrapTextMultiline(message, 525, 12)[0] ?? "", statusText)
+    : new CustomError(fallback, CustomError.GRAPHQL_ERROR);
+};
+
+/**
  * Fetch all-time contributions by building a single GraphQL query
  * for all the given years.
  *
@@ -303,17 +336,10 @@ const fetchTotalContributions = async (
   );
 
   if (contribRes.data.errors) {
-    logger.error(contribRes.data.errors);
-    const firstError = contribRes.data.errors[0];
-    if (firstError?.message) {
-      throw new CustomError(
-        wrapTextMultiline(firstError.message, 525, 12)[0] ?? "",
-        contribRes.statusText,
-      );
-    }
-    throw new CustomError(
+    throw graphqlError(
+      contribRes.data.errors,
+      contribRes.statusText,
       "Something went wrong while trying to retrieve the contributions data using the GraphQL API.",
-      CustomError.GRAPHQL_ERROR,
     );
   }
 
@@ -330,6 +356,139 @@ const fetchTotalContributions = async (
     }
   }
   return total;
+};
+
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+/**
+ * Ranges per request.
+ * Each costs roughly `4 * MAX_REPOSITORIES_LIMIT` nodes,
+ * so an unchunked round of a heavily split account would breach GitHub's 500k node ceiling
+ * and lose the ranges that had already resolved along with it.
+ */
+const MAX_RANGES_PER_REQUEST = 100;
+
+const REPOS_CONTRIBUTED_TO_ERROR =
+  "Something went wrong while trying to retrieve the repository contributions data using the GraphQL API.";
+
+/**
+ * Count the repositories a user contributed to across every contribution year.
+ *
+ * `repositoriesContributedTo` spans at most one year,
+ * so every year is fetched as an aliased `contributionsCollection(from, to)` in one request and the repos de-duplicated.
+ * A range returning `MAX_REPOSITORIES_LIMIT` results may have more,
+ * so it is halved and requeried in the next round.
+ *
+ * Whether private contributions are included depends on the used PAT.
+ *
+ * @param canonicalUsername Username as GitHub reports it; `nameWithOwner` uses its
+ *        casing, which the raw query-string username need not match.
+ * @param years Contribution years to walk.
+ * @param includeOwnRepos Whether to count the user's own repositories.
+ * @param pat Optional PAT override.
+ * @returns Count of repositories.
+ */
+const fetchAllTimeReposContributedTo = async (
+  canonicalUsername: string,
+  years: Array<number>,
+  includeOwnRepos: boolean,
+  pat: string | null,
+): Promise<number> => {
+  const repos = new Set<string>();
+  let pending = years.map(getGitHubYearRange);
+
+  while (pending.length > 0) {
+    const nextPending: Array<GitHubDateRange> = [];
+
+    for (const chunk of chunkArray(pending, MAX_RANGES_PER_REQUEST)) {
+      const fetcher = createGraphQLFetcher(
+        buildReposContributedToDocument(chunk, includeOwnRepos),
+        "bearer",
+      );
+      const res = await retryer(
+        fetcher,
+        { login: canonicalUsername, maxRepositories: MAX_REPOSITORIES_LIMIT },
+        pat,
+      );
+      if (res.data.errors) {
+        throw graphqlError(
+          res.data.errors,
+          res.statusText,
+          REPOS_CONTRIBUTED_TO_ERROR,
+        );
+      }
+      const user = res.data.data.user;
+      if (!user) {
+        throw new CustomError(
+          REPOS_CONTRIBUTED_TO_ERROR,
+          CustomError.GRAPHQL_ERROR,
+        );
+      }
+
+      for (const [index, range] of chunk.entries()) {
+        const rangeResponse = user[`range_${index}`];
+        if (!rangeResponse) {
+          throw new CustomError(
+            REPOS_CONTRIBUTED_TO_ERROR,
+            CustomError.GRAPHQL_ERROR,
+          );
+        }
+
+        const lists = [
+          rangeResponse.commitContributionsByRepository,
+          rangeResponse.issueContributionsByRepository,
+          rangeResponse.pullRequestContributionsByRepository,
+          (rangeResponse.repositoryContributions?.nodes ?? []).filter(
+            (node) => node !== null,
+          ),
+        ];
+        const isSaturated = lists.some(
+          (list) => list.length >= MAX_REPOSITORIES_LIMIT,
+        );
+
+        const rangeDays = Math.round(
+          (range.to.getTime() - range.from.getTime()) / MS_PER_DAY,
+        );
+        // a range of 1 day or less can't be split any further
+        if (isSaturated && rangeDays >= 2) {
+          // every `from` sits on UTC midnight, so the split lands on a day boundary too
+          const mid = new Date(
+            range.from.getTime() + Math.floor(rangeDays / 2) * MS_PER_DAY,
+          );
+          // GitHub only reads the date portion,
+          // so the first half ends 1 second before `mid` to keep the halves from sharing a day
+          nextPending.push(
+            { from: range.from, to: new Date(mid.getTime() - 1000) },
+            { from: mid, to: range.to },
+          );
+          continue;
+        }
+        if (isSaturated) {
+          logger.log(
+            `Range ${range.from.toISOString()} - ${range.to.toISOString()} is saturated but cannot be split further.`,
+          );
+        }
+
+        for (const { repository } of lists.flat()) {
+          const name = repository.nameWithOwner;
+          if (includeOwnRepos || !name.startsWith(`${canonicalUsername}/`)) {
+            repos.add(name);
+          }
+        }
+      }
+    }
+
+    // each saturated range pushes both of its halves
+    const saturatedCount = nextPending.length / 2;
+    if (saturatedCount > 0) {
+      logger.log(
+        `found ${saturatedCount} saturated ranges, splitting and retrying...`,
+      );
+    }
+    pending = nextPending;
+  }
+
+  return repos.size;
 };
 
 /**
@@ -351,6 +510,8 @@ const fetchTotalContributions = async (
  * @param include_issues_commented Include count of issues commented.
  * @param ownerAffiliations Owner affiliations. Default: OWNER.
  * @param include_contributions Include all-time contributions.
+ * @param include_all_time_contribs Include all-time count of repos contributed to.
+ * @param contribs_include_own_repos Include user-owned repos in contributed-to counts.
  * @param pat Optional PAT override.
  * @returns Stats data.
  */
@@ -371,6 +532,8 @@ const fetchStats = async (
   include_issues_commented = false,
   ownerAffiliations: Array<string> = [],
   include_contributions = false,
+  include_all_time_contribs = false,
+  contribs_include_own_repos = false,
   pat: string | null = null,
 ): Promise<StatsData> => {
   if (!username) {
@@ -389,6 +552,7 @@ const fetchStats = async (
     totalDiscussionsStarted: 0,
     totalDiscussionsAnswered: 0,
     contributedTo: 0,
+    allTimeContributedTo: 0,
     totalPRsAuthored: 0,
     totalPRsCommented: 0,
     totalPRsReviewed: 0,
@@ -404,8 +568,12 @@ const fetchStats = async (
     includeMergedPullRequests: include_merged_pull_requests,
     includeDiscussions: include_discussions,
     includeDiscussionsAnswers: include_discussions_answers,
-    startTime: commits_year ? `${commits_year}-01-01T00:00:00Z` : undefined,
+    startTime:
+      commits_year === undefined
+        ? undefined
+        : toGitHubDateTime(getGitHubYearRange(commits_year).from),
     ownerAffiliations: affiliations,
+    includeUserRepositories: contribs_include_own_repos,
     pat,
   });
 
@@ -486,6 +654,15 @@ const fetchStats = async (
     stats.totalContributions = await fetchTotalContributions(
       username,
       user.contributionsCollection.contributionYears,
+      pat,
+    );
+  }
+
+  if (include_all_time_contribs) {
+    stats.allTimeContributedTo = await fetchAllTimeReposContributedTo(
+      user.login,
+      user.contributionsCollection.contributionYears,
+      contribs_include_own_repos,
       pat,
     );
   }

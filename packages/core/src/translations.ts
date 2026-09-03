@@ -362,6 +362,9 @@ const statCardLocales = ({
       no: "Bidro til (i fjor)",
       be: "Уклад (за мінулы год)",
     },
+    "statcard.all-time-contribs": {
+      en: "Contributed to (all time)",
+    },
     "statcard.reviews": {
       en: "Total PRs Reviewed",
       ar: "طلبات السحب التي تم مراجعتها",
