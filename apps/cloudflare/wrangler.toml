@@ -1,7 +1,6 @@
 name = "github-readme-stats"
 main = "index.js"
-compatibility_date = "2025-05-05"
-compatibility_flags = [ "nodejs_compat" ]
+compatibility_date = "2026-08-25"
 
 [vars]
 # Usernames refused by the access guard. High-volume accounts, inherited from
