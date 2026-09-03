@@ -9,6 +9,10 @@ import axios from "axios";
 // workerd -- so this only makes the choice explicit.
 axios.defaults.adapter = "fetch";
 
+// axios >=1.20 pins `cache: "default"` on every Request, which workerd
+// rejects. "no-cache" needs a compatibility date of 2025-08-07 or later.
+axios.defaults.fetchOptions = { cache: "no-cache" };
+
 // Core hardcodes the successor project's issue tracker in error cards, with
 // no option to change it. No-ops if upstream ever changes the string.
 // Kept as a bare repo reference: the full URL overflows the fixed-width card.
