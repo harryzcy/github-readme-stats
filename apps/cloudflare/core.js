@@ -9,8 +9,8 @@ import axios from "axios";
 // workerd -- so this only makes the choice explicit.
 axios.defaults.adapter = "fetch";
 
-// axios >=1.20 pins `cache: "default"` on every Request, which workerd
-// rejects. "no-cache" needs a compatibility date of 2025-08-07 or later.
+// Cloudflare only supports the "no-store" and "no-cache" cache modes.
+// https://developers.cloudflare.com/workers/runtime-apis/fetch/
 axios.defaults.fetchOptions = { cache: "no-cache" };
 
 // Core hardcodes the successor project's issue tracker in error cards, with
