@@ -51,7 +51,7 @@
     "eslint-plugin-jsdoc": "64.2.1",
     "globals": "17.11.0",
     "knip": "6.32.3",
-    "lint-staged": "^17.3.0",
+    "lint-staged": "^17.4.1",
     "prettier": "^3.9.6",
     "turbo": "2.10.12",
     "typescript": "6.0.3",
