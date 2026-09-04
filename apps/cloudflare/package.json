@@ -17,6 +17,6 @@
     "axios": "catalog:"
   },
   "devDependencies": {
-    "wrangler": "^4.126.0"
+    "wrangler": "^4.127.0"
   }
 }
