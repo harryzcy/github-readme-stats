@@ -19,8 +19,16 @@ export default {
     const req = new RequestAdapter(request);
     const res = new ResponseAdapter();
 
+    // Upstream tolerates a trailing slash and its readme uses one, so many
+    // READMEs point at "/api/". Rewriting beats a redirect: no extra round
+    // trip on an image request.
     const { pathname } = new URL(request.url);
-    if (pathname === "/") {
+    const route =
+      pathname.length > 1 && pathname.endsWith("/")
+        ? pathname.slice(0, -1)
+        : pathname;
+
+    if (route === "/") {
       return new Response(
         `<!DOCTYPE html>
           <head>
@@ -47,7 +55,7 @@ export default {
       );
     }
 
-    if (pathname === "/robots.txt") {
+    if (route === "/robots.txt") {
       return new Response("User-agent: *\nDisallow: /\nAllow: /$", {
         headers: {
           "Content-Type": "text/plain;charset=UTF-8",
@@ -56,19 +64,19 @@ export default {
       });
     }
 
-    if (pathname === "/api") {
+    if (route === "/api") {
       await fromCore(api, "username", req, res, env);
-    } else if (pathname === "/api/gist") {
+    } else if (route === "/api/gist") {
       await fromCore(gist, "gist", req, res, env);
-    } else if (pathname === "/api/pin") {
+    } else if (route === "/api/pin") {
       await fromCore(pin, "username", req, res, env);
-    } else if (pathname === "/api/top-langs") {
+    } else if (route === "/api/top-langs") {
       await fromCore(topLangs, "username", req, res, env);
-    } else if (pathname === "/api/wakatime") {
+    } else if (route === "/api/wakatime") {
       await fromCore(wakatime, "wakatime", req, res, env);
-    } else if (pathname === "/api/status/pat-info") {
+    } else if (route === "/api/status/pat-info") {
       await statusPatInfoHandler(req, res);
-    } else if (pathname === "/api/status/up") {
+    } else if (route === "/api/status/up") {
       await statusUpHandler(req, res);
     } else {
       return new Response("not found", { status: 404 });
