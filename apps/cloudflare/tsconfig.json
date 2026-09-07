@@ -1,0 +1,16 @@
+{
+  "extends": ["../../tsconfig.base.json"],
+  "include": ["*.ts"],
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+
+    // workerd's globals replace the DOM lib.
+    "lib": ["ESNext"],
+    "types": ["@cloudflare/workers-types"],
+
+    // The `@stats/source` condition resolves core's card handlers to the
+    // JavaScript they are still written in; without this they arrive as `any`.
+    "allowJs": true
+  }
+}

@@ -1,10 +1,13 @@
+type ResponseBody = string | number | boolean | object | null;
+
 export class RequestAdapter {
-  params = {};
+  readonly request: Request;
+  readonly params: Record<string, string>;
 
   /**
-   * @param {Request} request Cloudflare Workers request
+   * @param request Cloudflare Workers request.
    */
-  constructor(request) {
+  constructor(request: Request) {
     this.request = request;
 
     // Matches how upstream's express/vercel deployment parses the query
@@ -13,25 +16,20 @@ export class RequestAdapter {
     this.params = Object.fromEntries(new URL(request.url).searchParams);
   }
 
-  /**
-   * @returns {string} request method
-   * @readonly
-   */
-  get query() {
+  get query(): Record<string, string> {
     return this.params;
   }
 }
 
 export class ResponseAdapter {
-  headers = {};
+  readonly headers: Record<string, string> = {};
   body = "";
 
   /**
-   * @param {string} key header key
-   * @param {string} value header value
-   * @returns {void}
+   * @param key Header key.
+   * @param value Header value.
    */
-  setHeader(key, value) {
+  setHeader(key: string, value: string): void {
     this.headers[key] = value;
   }
 
@@ -39,10 +37,9 @@ export class ResponseAdapter {
    * Mirrors the express-like `send` upstream's router provides: objects are
    * serialised as JSON, anything else is coerced to a string.
    *
-   * @param {any} body response body
-   * @returns {void}
+   * @param body Response body.
    */
-  send(body) {
+  send(body: ResponseBody): void {
     if (typeof body === "object" && body !== null) {
       this.headers["Content-Type"] = "application/json";
       this.body = JSON.stringify(body);
@@ -53,9 +50,9 @@ export class ResponseAdapter {
   }
 
   /**
-   * @returns {Response} Cloudflare Workers response
+   * @returns Cloudflare Workers response.
    */
-  toResponse() {
+  toResponse(): Response {
     return new Response(this.body, {
       headers: this.headers,
     });

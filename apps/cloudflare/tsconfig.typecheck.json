@@ -1,0 +1,10 @@
+{
+  "extends": ["./tsconfig.json"],
+  "compilerOptions": {
+    "customConditions": [],
+
+    // Core resolves to its build output here, so no JavaScript needs reading --
+    // and the backend's `@ts-check`ed status handlers stay out of our program.
+    "allowJs": false
+  }
+}

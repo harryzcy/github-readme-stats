@@ -10,6 +10,7 @@ import {
 
 import { RequestAdapter, ResponseAdapter } from "./adapter.js";
 import { ensureConfig, fromCore } from "./core.js";
+import type { Env } from "./core.js";
 
 export default {
   async fetch(request, env) {
@@ -91,4 +92,4 @@ export default {
     res.setHeader("X-Robots-Tag", "noindex, nofollow");
     return res.toResponse();
   },
-};
+} satisfies ExportedHandler<Env>;
