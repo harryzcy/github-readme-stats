@@ -28,10 +28,32 @@ jobs:
           pnpm run build:packages
           pnpm run test
 
+  code-checks:
+    name: Code checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install dependencies
+        uses: ./.github/actions/install-dependencies
+
       - name: Run ESLint
-        run: |
-          pnpm run lint
+        run: pnpm run lint
 
       - name: Run Prettier
+        run: pnpm run format:check
+
+      - name: Lint (knip)
+        run: pnpm run lint:knip
+
+      - name: Lint (deduped deps)
+        run: pnpm run lint:deps
+
+      # packages/core and apps/frontend typecheck upstream's vendored sources,
+      # which do not hold against the dependency versions this fork runs ahead
+      # on. Drop the filter once those line up; upstream runs the whole task.
+      - name: Typecheck
         run: |
-          pnpm run format:check
+          pnpm exec turbo run typecheck --filter=./apps/cloudflare --filter=./apps/backend
+          pnpm exec tsc -p tsconfig.scripts.json

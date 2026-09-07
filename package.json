@@ -9,7 +9,6 @@
     "cards",
     "card-generator"
   ],
-  "main": "src/index.js",
   "type": "module",
   "homepage": "https://github.com/harryzcy/github-readme-stats",
   "bugs": {
@@ -51,15 +50,11 @@
     "eslint-plugin-jsdoc": "64.3.2",
     "globals": "17.11.0",
     "knip": "6.33.0",
-    "lint-staged": "^17.4.1",
     "prettier": "^3.9.6",
     "turbo": "2.10.12",
     "typescript": "6.0.3",
     "typescript-eslint": "8.69.0",
     "vitest": "catalog:default"
-  },
-  "lint-staged": {
-    "*.{js,css,md}": "prettier --write"
   },
   "engines": {
     "node": ">=22"
