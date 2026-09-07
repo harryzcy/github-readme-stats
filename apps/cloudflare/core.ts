@@ -5,6 +5,37 @@ import {
 } from "@stats-organization/github-readme-stats-core";
 import axios from "axios";
 
+import type { RequestAdapter, ResponseAdapter } from "./adapter.js";
+
+/**
+ * Worker environment bindings: the `[vars]` from wrangler.toml, plus the
+ * secrets core reads out of the environment -- the `PAT_n` pool above all.
+ */
+export interface Env {
+  [binding: string]: string | undefined;
+  BLACKLIST?: string;
+  IS_CLOUDFLARE?: string;
+}
+
+/** Which identifier an access check guards. */
+type AccessType = "username" | "gist" | "wakatime";
+
+/** What core's card handlers resolve to. */
+interface CardResult {
+  status: string;
+  content: string;
+}
+
+/**
+ * The contract this Worker relies on from core's card handlers.
+ *
+ * Each handler destructures its own set of query parameters, so they have no
+ * parameter type in common -- `never` accepts whatever any of them declares.
+ * The result is what matters here, and restating it is what turns an upstream
+ * change into a build failure rather than a card that breaks at runtime.
+ */
+type CardHandler = (params: never, pat: null) => Promise<CardResult>;
+
 // Axios picks fetch here anyway -- http and xhr are unavailable under
 // workerd -- so this only makes the choice explicit.
 axios.defaults.adapter = "fetch";
@@ -20,7 +51,7 @@ const CORE_ISSUE_URL = "https://tinyurl.com/github-stats";
 const ISSUE_REF = "harryzcy/github-readme-stats";
 
 // Which query parameter carries the guarded identifier, per access type.
-const ID_PARAM = {
+const ID_PARAM: Record<AccessType, string> = {
   username: "username",
   gist: "id",
   wakatime: "username",
@@ -33,10 +64,9 @@ let configured = false;
  * that needs it. Core loads it from `process.env` at import time, which is
  * empty here, so it has to be reloaded from the Worker's env bindings.
  *
- * @param {object} env Environment variables.
- * @returns {void}
+ * @param env Environment variables.
  */
-export const ensureConfig = (env) => {
+export const ensureConfig = (env: Env): void => {
   if (!configured) {
     // env is constant for the lifetime of a deployment, so load it once.
     loadConfigFromEnv(env);
@@ -45,10 +75,10 @@ export const ensureConfig = (env) => {
 };
 
 /**
- * @param {string=} value Comma-separated list.
- * @returns {string[]} Trimmed, non-empty entries.
+ * @param value Comma-separated list.
+ * @returns Trimmed, non-empty entries.
  */
-const parseList = (value) => {
+const parseList = (value: string | undefined): Array<string> => {
   return (value ?? "")
     .split(",")
     .map((entry) => entry.trim())
@@ -63,27 +93,36 @@ const parseList = (value) => {
  * -- so it lives here. Whitelists come from core's config (`WHITELIST` and
  * `GIST_WHITELIST`); the blacklist comes from `BLACKLIST`.
  *
- * @param {"username"|"gist"|"wakatime"} type Access type.
- * @param {import("./adapter.js").RequestAdapter} req Request adapter.
- * @param {object} env Environment variables.
- * @returns {string|null} An error card, or null when access is allowed.
+ * @param type Access type.
+ * @param req Request adapter.
+ * @param env Environment variables.
+ * @returns An error card, or null when access is allowed.
  */
-const guardAccess = (type, req, env) => {
+const guardAccess = (
+  type: AccessType,
+  req: RequestAdapter,
+  env: Env,
+): string | null => {
   const { title_color, text_color, bg_color, border_color, theme } = req.query;
+
+  // Core's render options are exact-optional, so a parameter that was not
+  // supplied has to be left out rather than passed through as undefined.
   const renderOptions = {
-    title_color,
-    text_color,
-    bg_color,
-    border_color,
-    theme,
+    ...(title_color !== undefined && { title_color }),
+    ...(text_color !== undefined && { text_color }),
+    ...(bg_color !== undefined && { bg_color }),
+    ...(border_color !== undefined && { border_color }),
+    ...(theme !== undefined && { theme }),
     show_repo_link: false,
   };
 
-  const id = req.query[ID_PARAM[type]];
+  // An absent identifier is never whitelisted and never blacklisted, which is
+  // what the empty string gives us: entries are non-empty on both lists.
+  const id = req.query[ID_PARAM[type]] ?? "";
   const { whitelist, gistWhitelist } = getConfig();
   const allowed = type === "gist" ? gistWhitelist : whitelist;
 
-  if (Array.isArray(allowed) && !allowed.includes(id)) {
+  if (allowed !== undefined && !allowed.includes(id)) {
     return renderError({
       message:
         type === "gist"
@@ -113,16 +152,21 @@ const guardAccess = (type, req, env) => {
 
 /**
  * Run an upstream core card handler and write its result into the response
- * adapter, so the shared header handling in index.js still applies.
+ * adapter, so the shared header handling in index.ts still applies.
  *
- * @param {Function} handler Core card handler.
- * @param {"username"|"gist"|"wakatime"} type Access type to guard on.
- * @param {import("./adapter.js").RequestAdapter} req Request adapter.
- * @param {import("./adapter.js").ResponseAdapter} res Response adapter.
- * @param {object} env Environment variables.
- * @returns {Promise<void>}
+ * @param handler Core card handler.
+ * @param type Access type to guard on.
+ * @param req Request adapter.
+ * @param res Response adapter.
+ * @param env Environment variables.
  */
-export const fromCore = async (handler, type, req, res, env) => {
+export const fromCore = async (
+  handler: CardHandler,
+  type: AccessType,
+  req: RequestAdapter,
+  res: ResponseAdapter,
+  env: Env,
+): Promise<void> => {
   ensureConfig(env);
 
   res.setHeader("Content-Type", "image/svg+xml");
@@ -133,9 +177,11 @@ export const fromCore = async (handler, type, req, res, env) => {
     return;
   }
 
-  // The second argument is a per-user PAT, which is backed by Postgres
-  // upstream. We don't have that, so core falls back to the PAT_n pool.
-  const { content } = await handler(req.query, null);
+  // Every handler reads its parameters off the raw query object, whichever
+  // subset of it the handler names. The second argument is a per-user PAT,
+  // backed by Postgres upstream. We don't have that, so core falls back to
+  // the PAT_n pool.
+  const { content } = await handler(req.query as never, null);
 
   res.send(content.replace(CORE_ISSUE_URL, ISSUE_REF));
 };
