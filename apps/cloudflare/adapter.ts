@@ -1,4 +1,3 @@
-/** Anything upstream's handlers hand to `send`. */
 type ResponseBody = string | number | boolean | object | null;
 
 export class RequestAdapter {
@@ -17,9 +16,6 @@ export class RequestAdapter {
     this.params = Object.fromEntries(new URL(request.url).searchParams);
   }
 
-  /**
-   * The parsed query string, under the name core's handlers read it from.
-   */
   get query(): Record<string, string> {
     return this.params;
   }

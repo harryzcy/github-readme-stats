@@ -7,33 +7,22 @@ import axios from "axios";
 
 import type { RequestAdapter, ResponseAdapter } from "./adapter.js";
 
-/**
- * Worker environment bindings: the `[vars]` from wrangler.toml, plus the
- * secrets core reads out of the environment -- the `PAT_n` pool above all.
- */
+/** Worker environment bindings: wrangler.toml `[vars]`, plus the secrets. */
 export interface Env {
   [binding: string]: string | undefined;
   BLACKLIST?: string;
   IS_CLOUDFLARE?: string;
 }
 
-/** Which identifier an access check guards. */
 type AccessType = "username" | "gist" | "wakatime";
 
-/** What core's card handlers resolve to. */
 interface CardResult {
   status: string;
   content: string;
 }
 
-/**
- * The contract this Worker relies on from core's card handlers.
- *
- * Each handler destructures its own set of query parameters, so they have no
- * parameter type in common -- `never` accepts whatever any of them declares.
- * The result is what matters here, and restating it is what turns an upstream
- * change into a build failure rather than a card that breaks at runtime.
- */
+// Handlers destructure different query parameters, so `never` is the only
+// parameter type they share. The result is the part we depend on.
 type CardHandler = (params: never, pat: null) => Promise<CardResult>;
 
 // Axios picks fetch here anyway -- http and xhr are unavailable under
@@ -105,8 +94,7 @@ const guardAccess = (
 ): string | null => {
   const { title_color, text_color, bg_color, border_color, theme } = req.query;
 
-  // Core's render options are exact-optional, so a parameter that was not
-  // supplied has to be left out rather than passed through as undefined.
+  // Core's render options are exact-optional: omit rather than pass undefined.
   const renderOptions = {
     ...(title_color !== undefined && { title_color }),
     ...(text_color !== undefined && { text_color }),
@@ -116,13 +104,11 @@ const guardAccess = (
     show_repo_link: false,
   };
 
-  // An absent identifier is never whitelisted and never blacklisted, which is
-  // what the empty string gives us: entries are non-empty on both lists.
-  const id = req.query[ID_PARAM[type]] ?? "";
+  const id = req.query[ID_PARAM[type]];
   const { whitelist, gistWhitelist } = getConfig();
   const allowed = type === "gist" ? gistWhitelist : whitelist;
 
-  if (allowed !== undefined && !allowed.includes(id)) {
+  if (Array.isArray(allowed) && (id === undefined || !allowed.includes(id))) {
     return renderError({
       message:
         type === "gist"
@@ -138,6 +124,7 @@ const guardAccess = (
   if (
     type === "username" &&
     allowed === undefined &&
+    id !== undefined &&
     parseList(env.BLACKLIST).includes(id)
   ) {
     return renderError({
@@ -177,10 +164,8 @@ export const fromCore = async (
     return;
   }
 
-  // Every handler reads its parameters off the raw query object, whichever
-  // subset of it the handler names. The second argument is a per-user PAT,
-  // backed by Postgres upstream. We don't have that, so core falls back to
-  // the PAT_n pool.
+  // The second argument is a per-user PAT, which is backed by Postgres
+  // upstream. We don't have that, so core falls back to the PAT_n pool.
   const { content } = await handler(req.query as never, null);
 
   res.send(content.replace(CORE_ISSUE_URL, ISSUE_REF));

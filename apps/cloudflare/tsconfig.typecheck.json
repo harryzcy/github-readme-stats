@@ -3,9 +3,8 @@
   "compilerOptions": {
     "customConditions": [],
 
-    // Typechecking resolves core through its build output, so no JavaScript
-    // needs to be read. Leaving it on would instead pull in the backend's
-    // `@ts-check`-annotated status handlers, which are not ours to check.
+    // Core resolves to its build output here, so no JavaScript needs reading --
+    // and the backend's `@ts-check`ed status handlers stay out of our program.
     "allowJs": false
   }
 }

@@ -1,9 +1,5 @@
-/**
- * Upstream's status endpoints are plain JavaScript and `apps/backend` is
- * excluded from typechecking, so they ship no declarations. They are written
- * against express's `req`/`res`, of which they touch only the part the
- * adapters implement.
- */
+// The status endpoints are JavaScript and `apps/backend` is excluded from
+// typechecking, so they ship no declarations of their own.
 declare module "@stats-organization/github-readme-stats-backend/api-renamed/status/pat-info.js" {
   const handler: (
     req: import("./adapter.js").RequestAdapter,

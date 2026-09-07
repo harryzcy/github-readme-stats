@@ -5,13 +5,12 @@
     "module": "nodenext",
     "moduleResolution": "nodenext",
 
-    // Workers run on workerd, not in a browser: its globals replace the DOM lib.
+    // workerd's globals replace the DOM lib.
     "lib": ["ESNext"],
     "types": ["@cloudflare/workers-types"],
 
-    // Core's card handlers are still JavaScript, and the `@stats/source`
-    // condition resolves to them directly. Without this they come through as
-    // `any`, which the type-aware lint rules then reject at every call site.
+    // The `@stats/source` condition resolves core's card handlers to the
+    // JavaScript they are still written in; without this they arrive as `any`.
     "allowJs": true
   }
 }
