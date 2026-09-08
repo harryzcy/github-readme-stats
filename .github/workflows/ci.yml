@@ -20,7 +20,7 @@ permissions: {}
 jobs:
   # The job names below are required status checks on the cloudflare ruleset.
   # Renaming one leaves every pull request waiting on a check that never runs.
-  build:
+  build-and-test:
     name: Perform tests
     runs-on: ubuntu-latest
 
