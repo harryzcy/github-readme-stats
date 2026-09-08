@@ -1,19 +1,40 @@
-name: Test
-on:
-  push:
-  pull_request:
+name: CI
 
-permissions: read-all
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - cloudflare
+      - master
+  pull_request:
+    branches:
+      - cloudflare
+      - master
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.head_ref }}"
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
 
 jobs:
-  build:
-    name: Perform tests
-    runs-on: ubuntu-latest
+  # The job names below are required status checks on the cloudflare ruleset.
+  # Renaming one leaves every pull request waiting on a check that never runs.
+  build-and-test:
+    name: Build and test ${{ matrix.node }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    permissions:
+      contents: read
+
     strategy:
       fail-fast: false
       matrix:
         # 24 matches .nvmrc and upstream; 26 is what we develop on
-        node-version: [24, 26]
+        node: [24, 26]
+        # Pinned rather than ubuntu-latest, which still resolves to 24.04.
+        # Upstream covers macos instead; this fork ships to workerd only.
+        os: [ubuntu-24.04, ubuntu-26.04]
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -21,16 +42,23 @@ jobs:
       - name: Install dependencies
         uses: ./.github/actions/install-dependencies
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: ${{ matrix.node }}
 
-      - name: Build and test
-        run: |
-          pnpm run build:packages
-          pnpm run test
+      - name: Build packages
+        run: pnpm run build:packages
+
+      - name: Build frontend
+        run: pnpm run build:frontend
+
+      - name: Run tests
+        run: pnpm run test
 
   code-checks:
     name: Code checks
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
