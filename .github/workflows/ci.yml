@@ -1,14 +1,32 @@
-name: Test
-on:
-  push:
-  pull_request:
+name: CI
 
-permissions: read-all
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - cloudflare
+      - master
+  pull_request:
+    branches:
+      - cloudflare
+      - master
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.head_ref }}"
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
 
 jobs:
+  # The job names below are required status checks on the cloudflare ruleset.
+  # Renaming one leaves every pull request waiting on a check that never runs.
   build:
     name: Perform tests
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
     strategy:
       fail-fast: false
       matrix:
@@ -23,14 +41,21 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: Build and test
-        run: |
-          pnpm run build:packages
-          pnpm run test
+      - name: Build packages
+        run: pnpm run build:packages
+
+      - name: Build frontend
+        run: pnpm run build:frontend
+
+      - name: Run tests
+        run: pnpm run test
 
   code-checks:
     name: Code checks
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
 
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
