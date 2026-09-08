@@ -18,8 +18,7 @@ concurrency:
 permissions: {}
 
 jobs:
-  # The job names below are required status checks on the cloudflare ruleset.
-  # Renaming one leaves every pull request waiting on a check that never runs.
+  # Job names are required status checks; renaming one blocks every PR.
   build-and-test:
     name: Build and test ${{ matrix.node }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -32,8 +31,7 @@ jobs:
       matrix:
         # 24 matches .nvmrc and upstream; 26 is what we develop on
         node: [24, 26]
-        # Pinned rather than ubuntu-latest, which still resolves to 24.04.
-        # Upstream covers macos instead; this fork ships to workerd only.
+        # Pinned; ubuntu-latest is still 24.04. Upstream covers macos instead.
         os: [ubuntu-24.04, ubuntu-26.04]
 
     steps:
@@ -78,9 +76,8 @@ jobs:
       - name: Lint (deduped deps)
         run: pnpm run lint:deps
 
-      # packages/core and apps/frontend typecheck upstream's vendored sources,
-      # which do not hold against the dependency versions this fork runs ahead
-      # on. Drop the filter once those line up; upstream runs the whole task.
+      # core and frontend check vendored sources against dependency versions
+      # this fork runs ahead on. Drop the filter once those line up.
       - name: Typecheck
         run: |
           pnpm exec turbo run typecheck --filter=./apps/cloudflare --filter=./apps/backend
@@ -90,8 +87,7 @@ jobs:
       - name: Build packages
         run: pnpm run build:packages
 
-      # Nothing else in CI bundles the worker, so without this a build failure
-      # would first surface in the preview deployment -- which makes the check
-      # depend on Cloudflare being reachable.
+      # Nothing else in CI bundles the worker; without this a build failure
+      # would only surface once the preview deployment ran.
       - name: Bundle the worker
         run: pnpm --filter ./apps/cloudflare exec wrangler deploy --dry-run
