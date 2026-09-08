@@ -12,6 +12,21 @@ on:
         required: false
         type: string
         default: ""
+      repo:
+        description: "Repository the pin card renders, defaulting to this one"
+        required: false
+        type: string
+        default: ""
+      gist-id:
+        description: "Gist the gist card renders, defaulting to the one the readme demonstrates"
+        required: false
+        type: string
+        default: "bbfce31e0217a3689c8d961a356cb10d"
+      wakatime-username:
+        description: "WakaTime user the wakatime card renders, defaulting to the one the docs demonstrate"
+        required: false
+        type: string
+        default: "alan"
 
 jobs:
   verify:
@@ -20,6 +35,9 @@ jobs:
     env:
       BASE_URL: ${{ inputs.base-url }}
       CARD_USERNAME: ${{ inputs.username || github.repository_owner }}
+      CARD_REPO: ${{ inputs.repo || github.event.repository.name }}
+      GIST_ID: ${{ inputs.gist-id }}
+      WAKATIME_USERNAME: ${{ inputs.wakatime-username }}
       # Marks these as CI traffic in Workers Logs and zone analytics.
       USER_AGENT: github-actions-verify (+https://github.com/${{ github.repository }})
       # Defeats the 10-minute response cache, so we test what was just deployed.
@@ -73,10 +91,31 @@ jobs:
             return 1
           }
 
+          # Every route the worker serves, so a break confined to one card
+          # cannot reach production green. Only workerd runs the real thing:
+          # the unit tests run under node and cannot see a runtime difference.
           check "landing page" "/" "GitHub Readme Stats" || failures=$((failures + 1))
+          check "robots.txt" "/robots.txt" "Disallow: /" || failures=$((failures + 1))
           check "stats card" "/api?username=$CARD_USERNAME" "</svg>" || failures=$((failures + 1))
+          check "pin card" "/api/pin?username=$CARD_USERNAME&repo=$CARD_REPO" "</svg>" || failures=$((failures + 1))
           check "top languages card" "/api/top-langs?username=$CARD_USERNAME" "</svg>" || failures=$((failures + 1))
           check "PAT health" "/api/status/up?type=json" '{"up":true}' || failures=$((failures + 1))
+          check "PAT info" "/api/status/pat-info" '"validPATs"' || failures=$((failures + 1))
+
+          # These default to the identifiers the readme and docs render, which
+          # are public and already served on every view of those pages. Passing
+          # an empty string skips the check.
+          if [[ -n $GIST_ID ]]; then
+            check "gist card" "/api/gist?id=$GIST_ID" "</svg>" || failures=$((failures + 1))
+          else
+            echo "skipped: gist card (gist-id empty)"
+          fi
+
+          if [[ -n $WAKATIME_USERNAME ]]; then
+            check "wakatime card" "/api/wakatime?username=$WAKATIME_USERNAME" "</svg>" || failures=$((failures + 1))
+          else
+            echo "skipped: wakatime card (wakatime-username empty)"
+          fi
 
           if [[ $failures -gt 0 ]]; then
             echo "::error::$failures check(s) failed against $BASE_URL"
