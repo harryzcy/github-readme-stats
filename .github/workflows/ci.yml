@@ -18,7 +18,6 @@ concurrency:
 permissions: {}
 
 jobs:
-  # Job names are required status checks; renaming one blocks every PR.
   build-and-test:
     name: Build and test ${{ matrix.node }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
