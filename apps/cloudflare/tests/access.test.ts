@@ -85,6 +85,28 @@ describe("username access", () => {
   });
 });
 
+describe("refusal card styling", () => {
+  // The style parameters are spread in only when present, so absent ones fall
+  // back to core's defaults rather than overriding them with undefined.
+  it("honours the style parameters that were supplied", async () => {
+    const response = await fetchWorker(
+      "/api?username=stranger&title_color=ff0000&text_color=00ff00" +
+        "&bg_color=0000ff&border_color=cccccc&theme=dark",
+      { WHITELIST: "harryzcy" },
+    );
+
+    await expect(card(response)).resolves.toContain("#ff0000");
+  });
+
+  it("falls back to core's defaults when none were supplied", async () => {
+    const response = await fetchWorker("/api?username=stranger", {
+      WHITELIST: "harryzcy",
+    });
+
+    await expect(card(response)).resolves.toContain("#2f80ed");
+  });
+});
+
 describe("gist access", () => {
   it("guards on the id parameter, not the username", async () => {
     const response = await fetchWorker("/api/gist?id=abc123", {
