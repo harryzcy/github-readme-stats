@@ -29,7 +29,10 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
         with:
-          languages: javascript
+          # Kept as one job rather than a language matrix, so the analysis
+          # stays a single CodeQL-Build check. `actions` scans the workflows
+          # themselves; upstream's default setup covers both the same way.
+          languages: javascript-typescript, actions
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4.37.9
