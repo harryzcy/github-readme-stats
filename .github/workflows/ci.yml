@@ -85,3 +85,13 @@ jobs:
         run: |
           pnpm exec turbo run typecheck --filter=./apps/cloudflare --filter=./apps/backend
           pnpm exec tsc -p tsconfig.scripts.json
+
+      # Wrangler resolves core through its build output.
+      - name: Build packages
+        run: pnpm run build:packages
+
+      # Nothing else in CI bundles the worker, so without this a build failure
+      # would first surface in the preview deployment -- which makes the check
+      # depend on Cloudflare being reachable.
+      - name: Bundle the worker
+        run: pnpm --filter ./apps/cloudflare exec wrangler deploy --dry-run
