@@ -1,6 +1,6 @@
 {
   "extends": ["../../tsconfig.base.json"],
-  "include": ["*.ts"],
+  "include": ["*.ts", "tests"],
   "compilerOptions": {
     "module": "nodenext",
     "moduleResolution": "nodenext",
