@@ -19,7 +19,7 @@
     "axios": "catalog:"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^5.20260831.1",
+    "@cloudflare/workers-types": "^5.20260902.1",
     "wrangler": "^4.128.0",
     "vitest": "catalog:default"
   }
