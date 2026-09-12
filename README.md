@@ -5,7 +5,7 @@
 <a href="https://github-readme-stats.zcy.dev/api?username=anuraghazra"><img src="https://github-readme-stats.zcy.dev/api?username=anuraghazra"></a>
 </div>
 
-This is a [Cloudflare Workers](https://workers.cloudflare.com/) deployment of [GitHub Stats Extended](https://github.com/stats-organization/github-stats-extended), the [actively maintained successor](docs/fork.md) to [github-readme-stats](https://github.com/anuraghazra/github-readme-stats). Card rendering comes from upstream's `@stats-organization/github-readme-stats-core` package, so output matches the upstream instance; this repository adds the Workers runtime.
+This is a [Cloudflare Workers](https://workers.cloudflare.com/) deployment of [GitHub Stats Extended](https://github.com/stats-organization/github-stats-extended), the [actively maintained successor](https://github-readme-stats-vercel.zcy.dev/frontend/docs/fork/) to [github-readme-stats](https://github.com/anuraghazra/github-readme-stats). Card rendering comes from upstream's `@stats-organization/github-readme-stats-core` package, so output matches the upstream instance; this repository adds the Workers runtime.
 
 ## Table of Contents
 
@@ -34,7 +34,7 @@ To migrate from [github-readme-stats](https://github.com/anuraghazra/github-read
 + https://github-readme-stats.zcy.dev/api?username=octocat&theme=radical
 ```
 
-Parameters are compatible with upstream. See [Compatibility Notes](docs/fork.md#compatibility-notes).
+Parameters are compatible with upstream. See [Compatibility Notes](https://github-readme-stats-vercel.zcy.dev/frontend/docs/fork/#compatibility-notes).
 
 ## Card Types
 
@@ -64,7 +64,7 @@ Parameters are compatible with upstream. See [Compatibility Notes](docs/fork.md#
 
 ## Documentation
 
-See the [advanced documentation](docs/advanced_documentation.md) for the full parameter reference. Its examples use the upstream instance's domain; substitute `github-readme-stats.zcy.dev` to run them here.
+See the [customization documentation](https://github-readme-stats-vercel.zcy.dev/frontend/docs/customization/common-options/) for the full parameter reference. Its examples use the upstream instance's domain; substitute `github-readme-stats.zcy.dev` to run them here.
 
 To build a card visually, the [card wizard](https://github-stats-extended.vercel.app/frontend) generates markdown you can point at either instance.
 
@@ -77,9 +77,9 @@ npm install
 npx wrangler deploy
 ```
 
-`PAT_1`…`PAT_n` GitHub tokens are read from the Worker's environment; see [`wrangler.toml`](wrangler.toml) for the other variables.
+`PAT_1`…`PAT_n` GitHub tokens are read from the Worker's environment; see [`wrangler.toml`](apps/cloudflare/wrangler.toml) for the other variables.
 
-For upstream's own deployment options — the [GitHub Actions workflow](https://github.com/stats-organization/github-readme-stats-action) or self-hosting on Vercel — see [Run It Yourself](docs/deploy.md).
+For upstream's own deployment options — the [GitHub Actions workflow](https://github.com/stats-organization/github-readme-stats-action) or self-hosting on Vercel — see [Run It Yourself](https://github-readme-stats-vercel.zcy.dev/frontend/docs/deploy/).
 
 ## Acknowledgements
 
