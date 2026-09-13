@@ -15,6 +15,8 @@ export { dateDiff } from "./common/date.js";
 export { logger } from "./common/log.js";
 export { request } from "./common/http.js";
 
+export type { ApiResult } from "./api/api-result.js";
+
 export { default as gist } from "./api/gist.js";
 export { default as api } from "./api/index.js";
 export { default as pin } from "./api/pin.js";
