@@ -138,9 +138,6 @@ importers:
       '@reduxjs/toolkit':
         specifier: ^2.12.0
         version: 2.12.0(react-redux@9.3.0(@types/react@19.2.18)(react@19.3.0)(redux@5.0.1))(react@19.3.0)
-      '@stats-organization/github-readme-stats-backend':
-        specifier: workspace:^
-        version: link:../backend
       '@stats-organization/github-readme-stats-core':
         specifier: workspace:^
         version: link:../../packages/core
@@ -168,9 +165,6 @@ importers:
       react-icons:
         specifier: ^5.7.0
         version: 5.7.0(react@19.3.0)
-      react-loading-skeleton:
-        specifier: ^3.5.0
-        version: 3.5.0(react@19.3.0)
       react-redux:
         specifier: ^9.3.0
         version: 9.3.0(@types/react@19.2.18)(react@19.3.0)(redux@5.0.1)
@@ -183,9 +177,6 @@ importers:
       redux:
         specifier: ^5.0.1
         version: 5.0.1
-      save-svg-as-png:
-        specifier: ^1.4.17
-        version: 1.4.17
       uuid:
         specifier: ^14.0.2
         version: 14.0.2
@@ -4267,11 +4258,6 @@ packages:
   react-is@17.0.2:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
 
-  react-loading-skeleton@3.5.0:
-    resolution: {integrity: sha512-gxxSyLbrEAdXTKgfbpBEFZCO/P153DnqSCQau2+o6lNy1jgMRr2MmRmOzMmyrwSaSYLRB8g7b0waYPmUjz7IhQ==}
-    peerDependencies:
-      react: '>=16.8.0'
-
   react-redux@9.3.0:
     resolution: {integrity: sha512-KQopgqFo/p/fgmAs5qz6p5RWaNAzq40WAu7fJIXnQpYxFPbJYtsJPWvGeF2rOBaY/kEuV77AVsX8TsQzKm+A/g==}
     peerDependencies:
@@ -4425,9 +4411,6 @@ packages:
 
   satteri@0.9.5:
     resolution: {integrity: sha512-ZuWVl+vnM64y+/TtX8Kosv2c00W+hLQiiwnEL6H0UKVVrxFqMw4D2CJHHQaouVd89OAhtBBfjWLqhKi3TVUV4w==}
-
-  save-svg-as-png@1.4.17:
-    resolution: {integrity: sha512-7QDaqJsVhdFPwviCxkgHiGm9omeaMBe1VKbHySWU6oFB2LtnGCcYS13eVoslUgq6VZC6Tjq/HddBd1K6p2PGpA==}
 
   sax@1.6.1:
     resolution: {integrity: sha512-42tBVwLWnaQvW5zc4HbZrTuWccECCZfBi92FDuwtqxasH+JbPB3/FOKb1m222K42R4WxuxzzMsTswfzgtSu64Q==}
@@ -9396,10 +9379,6 @@ snapshots:
 
   react-is@17.0.2: {}
 
-  react-loading-skeleton@3.5.0(react@19.3.0):
-    dependencies:
-      react: 19.3.0
-
   react-redux@9.3.0(@types/react@19.2.18)(react@19.3.0)(redux@5.0.1):
     dependencies:
       '@types/use-sync-external-store': 0.0.6
@@ -9672,8 +9651,6 @@ snapshots:
       '@bruits/satteri-wasm32-wasi': 0.9.5
       '@bruits/satteri-win32-arm64-msvc': 0.9.5
       '@bruits/satteri-win32-x64-msvc': 0.9.5
-
-  save-svg-as-png@1.4.17: {}
 
   sax@1.6.1: {}
 
