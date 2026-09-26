@@ -80,6 +80,10 @@ updates:
       prefix-development: "ci(deps-dev)"
     cooldown:
       default-days: 7
+    groups:
+      codeql:
+        patterns:
+          - "github/codeql-action*"
 
   # Maintain dependencies for Devcontainers
   - package-ecosystem: devcontainers
