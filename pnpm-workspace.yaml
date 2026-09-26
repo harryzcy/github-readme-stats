@@ -16,10 +16,10 @@ onlyBuiltDependencies:
   - workerd
 
 catalog:
-  "@vitest/coverage-v8": 4.1.11
+  "@vitest/coverage-v8": 5.0.0
   axios: 1.20.0
   jsdom: 30.1.0
-  vitest: 4.1.11
+  vitest: 5.0.0
 
 overrides:
   # @tailwindcss/node pins lightningcss exactly while vite floats on ^1.32.0, so a cold re-resolve installs both.
@@ -30,6 +30,7 @@ overrides:
   # pulls in semver@6.3.1 — rejected by `trustPolicy: no-downgrade`. Version 6 dropped Babel for
   # oxc and is what the rest of the repo already resolves to. Drop this once @astrojs/react moves to ^6.
   "@astrojs/react>@vitejs/plugin-react": 6.0.3
+  zod: 4.6.5
   # Upstream holds these four back — see
   # https://github.com/stats-organization/github-stats-extended/pull/555 — but dependabot has
   # already moved us past every one of them, so we pin the newer versions instead of downgrading.
