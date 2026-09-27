@@ -359,19 +359,6 @@ export function CustomizeStage({
             }}
           />
         )}
-        {(cardType === CardType.STATS ||
-          cardType === CardType.TOP_LANGS ||
-          cardType === CardType.WAKATIME) && (
-          <CheckboxSection
-            title="Enable Animations?"
-            // text="Enable Animations."
-            question="enable animations?"
-            checked={enableAnimations}
-            onCheckedChange={(checked) => {
-              onOptionChange("enableAnimations", checked);
-            }}
-          />
-        )}
         {CATEGORY_BY_CARD_TYPE[cardType] === CardCategory.REPO && (
           <CheckboxSection
             title="Show Owner?"
@@ -400,6 +387,20 @@ export function CustomizeStage({
             }}
             min={1}
             max={3}
+          />
+        )}
+        {(cardType === CardType.STATS ||
+          cardType === CardType.TOP_LANGS ||
+          cardType === CardType.PIN ||
+          cardType === CardType.WAKATIME) && (
+          <CheckboxSection
+            title="Enable Animations?"
+            // text="Enable Animations."
+            question="enable animations?"
+            checked={enableAnimations}
+            onCheckedChange={(checked) => {
+              onOptionChange("enableAnimations", checked);
+            }}
           />
         )}
         <div className="pl-10 pr-10">
