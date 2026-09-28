@@ -84,6 +84,7 @@ describe("Test /api/gist contract", () => {
       border_radius: "12",
       border_color: "fedcba",
       show_owner: "true",
+      disable_animations: "true",
     });
 
     const req = {

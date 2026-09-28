@@ -104,6 +104,15 @@ describe("buildCardUrl", () => {
     expect(result.toString()).toBe("/gist?id=gist1&show_owner=true");
   });
 
+  it("adds disable_animations to the gist card", () => {
+    const result = buildCardUrl(USER_ID, CardType.GIST, {
+      ...baseOptions,
+      enableAnimations: false,
+    });
+
+    expect(result.toString()).toBe("/gist?id=gist1&disable_animations=true");
+  });
+
   it("builds wakatime suffix with percent and custom title", () => {
     const result = buildCardUrl(USER_ID, CardType.WAKATIME, {
       ...baseOptions,
