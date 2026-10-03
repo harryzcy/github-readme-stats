@@ -37,7 +37,6 @@ overrides:
   # axios, axios-cache-interceptor and astro resolve to a single version here without an override;
   # only markdown-satteri duplicates, which scripts/assert-deduped.ts fails on.
   "@astrojs/markdown-satteri": 0.3.8
-  "miniflare>undici": 7.29.1
 
 # Deliberately stricter than pnpm 11's 1440 default (7 days vs 1)
 minimumReleaseAge: 10080
