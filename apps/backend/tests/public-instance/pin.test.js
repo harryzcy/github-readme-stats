@@ -140,6 +140,7 @@ describe("Test /api/pin contract", () => {
       border_radius: "12",
       border_color: "fedcba",
       description_lines_count: "1",
+      disable_animations: "false",
     });
 
     const req = {
