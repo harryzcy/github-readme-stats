@@ -59,12 +59,18 @@ jobs:
           # the runner would be unsigned. --no-commit keeps that impossible.
           echo "head_sha=$(git rev-parse "upstream/$UPSTREAM_BRANCH")" >> "$GITHUB_OUTPUT"
 
-          if git merge --no-commit --no-ff "upstream/$UPSTREAM_BRANCH"; then
+          if git -c user.name="github-actions[bot]" \
+            -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            merge --no-commit --no-ff "upstream/$UPSTREAM_BRANCH"; then
             echo "clean=true" >> "$GITHUB_OUTPUT"
           else
-            echo "clean=false" >> "$GITHUB_OUTPUT"
             # record the conflicting paths before throwing the attempt away
             git diff --name-only --diff-filter=U > /tmp/conflicts.txt
+            if [ ! -s /tmp/conflicts.txt ]; then
+              echo "The merge failed without conflicting paths." >> "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
+            echo "clean=false" >> "$GITHUB_OUTPUT"
           fi
           git merge --abort || git reset --hard HEAD
 
