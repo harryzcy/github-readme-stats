@@ -22,7 +22,6 @@ catalogs:
 overrides:
   vite>lightningcss: 1.32.0
   '@astrojs/react>@vitejs/plugin-react': 6.0.3
-  zod: 4.6.5
   '@astrojs/markdown-satteri': 0.3.8
 
 importers:
