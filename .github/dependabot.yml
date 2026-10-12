@@ -78,7 +78,17 @@ updates:
     open-pull-requests-limit: 20
     commit-message:
       prefix: "ci(deps)"
-      prefix-development: "ci(deps-dev)"
+    cooldown:
+      default-days: 7
+
+  # Maintain dependencies for Docker
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 20
+    commit-message:
+      prefix: "build(deps)"
     cooldown:
       default-days: 7
 
@@ -90,6 +100,5 @@ updates:
     open-pull-requests-limit: 20
     commit-message:
       prefix: "build(deps)"
-      prefix-development: "build(deps-dev)"
     cooldown:
       default-days: 7
