@@ -26,6 +26,6 @@
     "@stats-organization/github-readme-stats-core": "workspace:^",
     "axios": "catalog:default",
     "express": "5.2.1",
-    "pg": "^8.23.0"
+    "pg": "^8.23.1"
   }
 }
