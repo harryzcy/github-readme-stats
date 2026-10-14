@@ -1,8 +1,6 @@
 // @ts-check
 
 import { logger } from "@stats-organization/github-readme-stats-core";
-import axios from "axios";
-import MockAdapter from "axios-mock-adapter";
 import {
   afterAll,
   afterEach,
@@ -17,10 +15,12 @@ import {
 import {
   createRequestResponse,
   happy_path_gist_data,
+  mockGraphQL,
   normalizeSvg,
 } from "../utils.js";
 
-const mock = new MockAdapter(axios);
+/** @type {Array<string>} */
+let graphqlRequests;
 
 beforeEach(() => {
   vi.stubEnv("CACHE_SECONDS", "");
@@ -28,9 +28,7 @@ beforeEach(() => {
   vi.stubEnv("POSTGRES_URL", "");
   vi.stubEnv("WHITELIST", "");
 
-  mock
-    .onPost("https://api.github.com/graphql")
-    .reply(200, happy_path_gist_data);
+  graphqlRequests = mockGraphQL(happy_path_gist_data);
 });
 
 beforeAll(() => {
@@ -39,7 +37,6 @@ beforeAll(() => {
 });
 
 afterEach(() => {
-  mock.reset();
   vi.unstubAllEnvs();
   // modules may cache environment variables, so we need to reset them
   vi.resetModules();
@@ -91,7 +88,7 @@ describe("Test /api/gist contract", () => {
     expect(res.end).toHaveBeenCalledOnce();
 
     expect({
-      graphqlRequest: mock.history.post[0].data,
+      graphqlRequest: graphqlRequests[0],
       headers: res.setHeader.mock.calls,
       content: normalizeSvg(res.end.mock.calls[0][0]),
     }).toMatchSnapshot();

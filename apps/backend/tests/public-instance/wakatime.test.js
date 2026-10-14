@@ -1,8 +1,7 @@
 // @ts-check
 
 import { logger } from "@stats-organization/github-readme-stats-core";
-import axios from "axios";
-import MockAdapter from "axios-mock-adapter";
+import nock, { cleanAll } from "nock";
 import {
   afterAll,
   afterEach,
@@ -15,8 +14,6 @@ import {
 } from "vitest";
 
 import { createRequestResponse, normalizeSvg, wakaTimeData } from "../utils.js";
-
-const mock = new MockAdapter(axios);
 
 const wakaTimeProfileNotPublicData = {
   data: {
@@ -32,10 +29,8 @@ beforeEach(() => {
   vi.stubEnv("POSTGRES_URL", "");
   vi.stubEnv("WHITELIST", "");
 
-  mock
-    .onGet(
-      "https://wakatime.com/api/v1/users/anuraghazra/stats?is_including_today=true",
-    )
+  nock("https://wakatime.com")
+    .get("/api/v1/users/anuraghazra/stats?is_including_today=true")
     .reply(200, wakaTimeData);
 });
 
@@ -45,7 +40,6 @@ beforeAll(() => {
 });
 
 afterEach(() => {
-  mock.reset();
   vi.unstubAllEnvs();
   // modules may cache environment variables, so we need to reset them
   vi.resetModules();
@@ -74,11 +68,9 @@ describe("Test /api/wakatime contract", () => {
   });
 
   it("should match the public many-params response snapshot", async () => {
-    mock.reset(); // to verify api_domain param is working
-    mock
-      .onGet(
-        "https://wakatime.local/api/v1/users/anuraghazra/stats?is_including_today=true",
-      )
+    cleanAll(); // to verify api_domain param is working
+    nock("https://wakatime.local")
+      .get("/api/v1/users/anuraghazra/stats?is_including_today=true")
       .reply(200, wakaTimeData);
 
     const { default: router } = await import("../../router.js");
@@ -149,11 +141,9 @@ describe("Test /api/wakatime contract", () => {
   });
 
   it("should match the public inaccessible-profile response snapshot", async () => {
-    mock.reset();
-    mock
-      .onGet(
-        "https://wakatime.com/api/v1/users/anuraghazra/stats?is_including_today=true",
-      )
+    cleanAll();
+    nock("https://wakatime.com")
+      .get("/api/v1/users/anuraghazra/stats?is_including_today=true")
       .reply(200, wakaTimeProfileNotPublicData);
 
     const { default: router } = await import("../../router.js");

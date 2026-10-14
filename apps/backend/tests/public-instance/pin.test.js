@@ -1,8 +1,7 @@
 // @ts-check
 
 import { logger } from "@stats-organization/github-readme-stats-core";
-import axios from "axios";
-import MockAdapter from "axios-mock-adapter";
+import nock, { cleanAll } from "nock";
 import {
   afterAll,
   afterEach,
@@ -14,9 +13,15 @@ import {
   vi,
 } from "vitest";
 
-import { createRequestResponse, data_user, normalizeSvg } from "../utils.js";
+import {
+  createRequestResponse,
+  data_user,
+  mockGraphQL,
+  normalizeSvg,
+} from "../utils.js";
 
-const mock = new MockAdapter(axios);
+/** @type {Array<string>} */
+let graphqlRequests;
 
 beforeEach(() => {
   vi.stubEnv("CACHE_SECONDS", "");
@@ -24,7 +29,7 @@ beforeEach(() => {
   vi.stubEnv("POSTGRES_URL", "");
   vi.stubEnv("WHITELIST", "");
 
-  mock.onPost("https://api.github.com/graphql").reply(200, data_user);
+  graphqlRequests = mockGraphQL(data_user);
 });
 
 beforeAll(() => {
@@ -33,7 +38,6 @@ beforeAll(() => {
 });
 
 afterEach(() => {
-  mock.reset();
   vi.unstubAllEnvs();
   // modules may cache environment variables, so we need to reset them
   vi.resetModules();
@@ -65,9 +69,8 @@ describe("Test /api/pin contract", () => {
     let archived_data_user = structuredClone(data_user);
     archived_data_user.data.user.repository.isArchived = true;
 
-    mock
-      .onPost("https://api.github.com/graphql")
-      .reply(200, archived_data_user);
+    cleanAll();
+    mockGraphQL(archived_data_user);
 
     const { default: router } = await import("../../router.js");
 
@@ -86,30 +89,29 @@ describe("Test /api/pin contract", () => {
   });
 
   it("should match the public many-params response snapshot", async () => {
-    mock.onPost("https://api.github.com/graphql").reply(200, data_user);
-    mock
-      .onGet(
-        "https://api.github.com/search/issues?per_page=1&q=repo:anuraghazra/convoychat+author:anuraghazra+type:pr",
+    nock("https://api.github.com")
+      .get(
+        "/search/issues?per_page=1&q=repo:anuraghazra/convoychat+author:anuraghazra+type:pr",
       )
       .reply(200, { total_count: 1234 });
-    mock
-      .onGet(
-        "https://api.github.com/search/issues?per_page=1&q=repo:anuraghazra/convoychat+commenter:anuraghazra+-author:anuraghazra+type:pr",
+    nock("https://api.github.com")
+      .get(
+        "/search/issues?per_page=1&q=repo:anuraghazra/convoychat+commenter:anuraghazra+-author:anuraghazra+type:pr",
       )
       .reply(200, { total_count: 2345 });
-    mock
-      .onGet(
-        "https://api.github.com/search/issues?per_page=1&q=repo:anuraghazra/convoychat+reviewed-by:anuraghazra+-author:anuraghazra+type:pr",
+    nock("https://api.github.com")
+      .get(
+        "/search/issues?per_page=1&q=repo:anuraghazra/convoychat+reviewed-by:anuraghazra+-author:anuraghazra+type:pr",
       )
       .reply(200, { total_count: 3456 });
-    mock
-      .onGet(
-        "https://api.github.com/search/issues?per_page=1&q=repo:anuraghazra/convoychat+author:anuraghazra+type:issue",
+    nock("https://api.github.com")
+      .get(
+        "/search/issues?per_page=1&q=repo:anuraghazra/convoychat+author:anuraghazra+type:issue",
       )
       .reply(200, { total_count: 4567 });
-    mock
-      .onGet(
-        "https://api.github.com/search/issues?per_page=1&q=repo:anuraghazra/convoychat+commenter:anuraghazra+-author:anuraghazra+type:issue",
+    nock("https://api.github.com")
+      .get(
+        "/search/issues?per_page=1&q=repo:anuraghazra/convoychat+commenter:anuraghazra+-author:anuraghazra+type:issue",
       )
       .reply(200, { total_count: 5678 });
 
@@ -141,7 +143,7 @@ describe("Test /api/pin contract", () => {
     expect(res.end).toHaveBeenCalledOnce();
 
     expect({
-      graphqlRequest: mock.history.post[0].data,
+      graphqlRequest: graphqlRequests[0],
       headers: res.setHeader.mock.calls,
       content: normalizeSvg(res.end.mock.calls[0][0]),
     }).toMatchSnapshot();

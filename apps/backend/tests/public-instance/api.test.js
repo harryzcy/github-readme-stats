@@ -1,8 +1,6 @@
 // @ts-check
 
 import { logger } from "@stats-organization/github-readme-stats-core";
-import axios from "axios";
-import MockAdapter from "axios-mock-adapter";
 import {
   afterAll,
   afterEach,
@@ -14,9 +12,15 @@ import {
   vi,
 } from "vitest";
 
-import { createRequestResponse, data_stats, normalizeSvg } from "../utils.js";
+import {
+  createRequestResponse,
+  data_stats,
+  mockGraphQL,
+  normalizeSvg,
+} from "../utils.js";
 
-const mock = new MockAdapter(axios);
+/** @type {Array<string>} */
+let graphqlRequests;
 
 beforeEach(() => {
   vi.stubEnv("CACHE_SECONDS", "");
@@ -24,7 +28,7 @@ beforeEach(() => {
   vi.stubEnv("POSTGRES_URL", "");
   vi.stubEnv("WHITELIST", "");
 
-  mock.onPost("https://api.github.com/graphql").reply(200, data_stats);
+  graphqlRequests = mockGraphQL(data_stats);
 });
 
 beforeAll(() => {
@@ -33,7 +37,6 @@ beforeAll(() => {
 });
 
 afterEach(() => {
-  mock.reset();
   vi.unstubAllEnvs();
   // modules may cache environment variables, so we need to reset them
   vi.resetModules();
@@ -60,8 +63,6 @@ describe("Test /api contract", () => {
   });
 
   it("should match the public many-params response snapshot", async () => {
-    mock.onPost("https://api.github.com/graphql").reply(200, data_stats);
-
     const { default: router } = await import("../../router.js");
 
     const params = new URLSearchParams({
@@ -97,7 +98,7 @@ describe("Test /api contract", () => {
     expect(res.end).toHaveBeenCalledOnce();
 
     expect({
-      graphqlRequest: mock.history.post[0].data,
+      graphqlRequest: graphqlRequests[0],
       headers: res.setHeader.mock.calls,
       content: normalizeSvg(res.end.mock.calls[0][0]),
     }).toMatchSnapshot();
