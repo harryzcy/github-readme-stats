@@ -126,20 +126,13 @@ Click the button to deploy in one click, or follow the step-by-step guide below.
 4. Sign in to GitHub and allow access to all repositories if prompted.
 5. Fork this repo. Disable "Copy the `master` branch only".
 6. Go back to your [Vercel dashboard](https://vercel.com/dashboard).
-7. To import a project, click the `Add New...` button and select the `Project` option.
+7. To import a project, click the `Create New...` button and select the `Project` option.
    ![](https://files.catbox.moe/3n76fh.png)
 8. Search for the forked Git Repository and import it by clicking the `Import` button.
-9. Create a Personal Access Token (PAT) as described in the [previous section](#first-step-get-your-personal-access-token-pat).
-10. Add the PAT as an environment variable named `PAT_1` (as shown).
-    ![](https://files.catbox.moe/0yclio.png)
-    Note: For enhanced security, you can add a variable as a sensitive variable. To do this:
-    1. Go to `Environment Variables` in `Project Settings`, then choose `Add Environment Variable`.
-       ![](https://files.catbox.moe/heprjw.jpg)
-    2. Uncheck `Deployment` from `Environments`
-       ![](https://files.catbox.moe/tiqgd0.jpg)
-    3. Now you can make the variable `Sensitive` by checking the checkbox.
-       ![](https://files.catbox.moe/mla5no.jpg)
-11. As `Root directory` select the `apps/backend` folder.
+9. As `Application Preset` select `Container`.
+10. Create a Personal Access Token (PAT) as described in the [previous section](#first-step-get-your-personal-access-token-pat).
+11. Add the PAT as an environment variable named `PAT_1` (as shown).
+    ![](https://files.catbox.moe/6l785c.png)
 12. Click deploy.
 13. Point your Vercel project at the `release` branch instead of `master`.  
     `master` contains unreleased, potentially unstable code, while `release` contains the latest stable release.

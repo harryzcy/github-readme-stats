@@ -1,7 +1,7 @@
 // @ts-check
 
 import { logger } from "@stats-organization/github-readme-stats-core";
-import nock, { cleanAll } from "nock";
+import nock from "nock";
 import {
   afterAll,
   afterEach,
@@ -68,7 +68,7 @@ describe("Test /api/wakatime contract", () => {
   });
 
   it("should match the public many-params response snapshot", async () => {
-    cleanAll(); // to verify api_domain param is working
+    nock.cleanAll(); // to verify api_domain param is working
     nock("https://wakatime.local")
       .get("/api/v1/users/anuraghazra/stats?is_including_today=true")
       .reply(200, wakaTimeData);
@@ -141,7 +141,7 @@ describe("Test /api/wakatime contract", () => {
   });
 
   it("should match the public inaccessible-profile response snapshot", async () => {
-    cleanAll();
+    nock.cleanAll();
     nock("https://wakatime.com")
       .get("/api/v1/users/anuraghazra/stats?is_including_today=true")
       .reply(200, wakaTimeProfileNotPublicData);

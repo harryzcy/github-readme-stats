@@ -3,7 +3,7 @@
  */
 
 import axios from "axios";
-import nock, { cleanAll, restore } from "nock";
+import nock from "nock";
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 
 import { createRequestResponse } from "../utils.js";
@@ -185,8 +185,8 @@ beforeAll(async () => {
   nock("https://api.github.com", { allowUnmocked: true })
     .persist()
     .post("/graphql")
-    .reply((_uri, body) => {
-      const { query, variables } = body;
+    .reply(async (request) => {
+      const { query, variables } = await request.json();
 
       if (
         query.includes("query userInfo") &&
@@ -222,8 +222,8 @@ beforeAll(async () => {
 });
 
 afterAll(() => {
-  cleanAll();
-  restore();
+  nock.cleanAll();
+  nock.restore();
   vi.unstubAllEnvs();
 });
 

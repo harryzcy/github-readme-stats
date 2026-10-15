@@ -1,4 +1,4 @@
-import nock, { cleanAll } from "nock";
+import nock from "nock";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { calculateRank } from "../src/calculateRank.js";
@@ -318,8 +318,8 @@ beforeEach(() => {
   nock("https://api.github.com")
     .persist()
     .post("/graphql")
-    .reply((_uri, body) => {
-      const req = body as {
+    .reply(async (request: Request) => {
+      const req = (await request.json()) as {
         variables?: { startTime?: string; includeUserRepositories?: boolean };
         query: string;
       };
@@ -356,7 +356,7 @@ describe("Test fetchStats", () => {
   });
 
   it("should stop fetching when there are repos with zero stars", async () => {
-    cleanAll();
+    nock.cleanAll();
     nock("https://api.github.com")
       .post("/graphql")
       .reply(200, data_stats)
@@ -368,7 +368,7 @@ describe("Test fetchStats", () => {
   });
 
   it("should throw error", async () => {
-    cleanAll();
+    nock.cleanAll();
     nock("https://api.github.com").persist().post("/graphql").reply(200, error);
 
     await expect(fetchStats("anuraghazra")).rejects.toThrow(
@@ -452,7 +452,7 @@ describe("Test fetchStats", () => {
   it("should fetch at most 'FETCH_MULTI_PAGE_STARS' pages when it is a number", async () => {
     vi.stubEnv("FETCH_MULTI_PAGE_STARS", "3");
     loadConfigFromEnv();
-    cleanAll();
+    nock.cleanAll();
     const requests: Array<{ variables: { after: unknown } }> = [];
     nock("https://api.github.com")
       .on("request", (_req, _interceptor, body: string) => {
@@ -481,7 +481,7 @@ describe("Test fetchStats", () => {
   it("should throw when a page after the first returns an error", async () => {
     vi.stubEnv("FETCH_MULTI_PAGE_STARS", "true");
     loadConfigFromEnv();
-    cleanAll();
+    nock.cleanAll();
     let requestCount = 0;
     nock("https://api.github.com")
       .on("request", () => {
@@ -534,12 +534,12 @@ describe("Test fetchStats", () => {
   });
 
   it("should throw when the contributions query returns an error", async () => {
-    cleanAll();
+    nock.cleanAll();
     nock("https://api.github.com")
       .persist()
       .post("/graphql")
-      .reply((_uri, body) => {
-        const req = body as { query: string };
+      .reply(async (request: Request) => {
+        const req = (await request.json()) as { query: string };
         if (req.query.includes("contributionCalendar")) {
           return [
             200,
@@ -563,12 +563,12 @@ describe("Test fetchStats", () => {
   });
 
   it("should throw a generic error when the contributions query returns an error without a message", async () => {
-    cleanAll();
+    nock.cleanAll();
     nock("https://api.github.com")
       .persist()
       .post("/graphql")
-      .reply((_uri, body) => {
-        const req = body as { query: string };
+      .reply(async (request: Request) => {
+        const req = (await request.json()) as { query: string };
         if (req.query.includes("contributionCalendar")) {
           return [200, { data: null, errors: [{ type: "SOME_ERROR" }] }];
         }
@@ -588,7 +588,7 @@ describe("Test fetchStats", () => {
   });
 
   it("should return correct data when user don't have any pull requests", async () => {
-    cleanAll();
+    nock.cleanAll();
     nock("https://api.github.com")
       .persist()
       .post("/graphql")
@@ -631,12 +631,12 @@ describe("Test fetchStats", () => {
     async ({ contribsIncludeOwnRepos, shouldSelect }) => {
       let contributedToQuery = "";
 
-      cleanAll();
+      nock.cleanAll();
       nock("https://api.github.com")
         .persist()
         .post("/graphql")
-        .reply((_uri, body) => {
-          const req = body as { query: string };
+        .reply(async (request: Request) => {
+          const req = (await request.json()) as { query: string };
           if (req.query.includes("userReposContributedTo")) {
             contributedToQuery = req.query;
             return [200, data_repos_contributed_to];
@@ -668,13 +668,13 @@ describe("Test fetchStats", () => {
 
     let requestCount = 0;
 
-    cleanAll();
+    nock.cleanAll();
     nock("https://api.github.com")
       .persist()
       .post("/graphql")
-      .reply((_uri, body) => {
+      .reply(async (request: Request) => {
         requestCount++;
-        const req = body as { query: string };
+        const req = (await request.json()) as { query: string };
 
         if (req.query.includes("userReposContributedTo")) {
           const rangeCount = (req.query.match(/range_\d+:/g) ?? []).length;
@@ -707,12 +707,12 @@ describe("Test fetchStats", () => {
   ): Array<number> => {
     const allRangeCounts: Array<number> = [];
 
-    cleanAll();
+    nock.cleanAll();
     nock("https://api.github.com")
       .persist()
       .post("/graphql")
-      .reply((_uri, body) => {
-        const req = body as { query: string };
+      .reply(async (request: Request) => {
+        const req = (await request.json()) as { query: string };
         if (!req.query.includes("userReposContributedTo")) {
           return [200, data_stats_many_years];
         }
@@ -781,12 +781,12 @@ describe("Test fetchStats", () => {
   it("should retry on empty contributed-to response and succeed within retry limit", async () => {
     let contributedToCallCount = 0;
 
-    cleanAll();
+    nock.cleanAll();
     nock("https://api.github.com")
       .persist()
       .post("/graphql")
-      .reply((_uri, body) => {
-        const req = body as { query: string };
+      .reply(async (request: Request) => {
+        const req = (await request.json()) as { query: string };
         if (!req.query.includes("userReposContributedTo")) {
           return [200, data_stats];
         }
@@ -806,12 +806,12 @@ describe("Test fetchStats", () => {
   it("should throw when empty contributed-to responses exhaust retry limit", async () => {
     let contributedToCallCount = 0;
 
-    cleanAll();
+    nock.cleanAll();
     nock("https://api.github.com")
       .persist()
       .post("/graphql")
-      .reply((_uri, body) => {
-        const req = body as { query: string };
+      .reply(async (request: Request) => {
+        const req = (await request.json()) as { query: string };
         if (!req.query.includes("userReposContributedTo")) {
           return [200, data_stats];
         }

@@ -1,7 +1,7 @@
 import { TextDecoder, TextEncoder } from "util";
 
 import axios from "axios";
-import { cleanAll, disableNetConnect, enableNetConnect } from "nock";
+import nock from "nock";
 import { afterEach } from "vitest";
 
 //https://stackoverflow.com/a/68468204/1643179
@@ -13,10 +13,10 @@ process.env.PAT_2 = "dummyPAT2";
 // jsdom provides XMLHttpRequest, so axios would pick its XHR adapter, which nock cannot intercept.
 axios.defaults.adapter = "http";
 // disable all real network connections except for localhost
-disableNetConnect();
+nock.disableNetConnect();
 // supertest talks to the app under test via a local socket.
-enableNetConnect(/^(127\.0\.0\.1|localhost)(:\d+)?$/);
+nock.enableNetConnect(/^(127\.0\.0\.1|localhost)(:\d+)?$/);
 
 afterEach(() => {
-  cleanAll();
+  nock.cleanAll();
 });

@@ -1,7 +1,7 @@
 // @ts-check
 
 import { logger } from "@stats-organization/github-readme-stats-core";
-import nock, { cleanAll } from "nock";
+import nock from "nock";
 import {
   afterAll,
   afterEach,
@@ -69,7 +69,7 @@ describe("Test /api/pin contract", () => {
     let archived_data_user = structuredClone(data_user);
     archived_data_user.data.user.repository.isArchived = true;
 
-    cleanAll();
+    nock.cleanAll();
     mockGraphQL(archived_data_user);
 
     const { default: router } = await import("../../router.js");
