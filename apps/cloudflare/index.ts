@@ -1,5 +1,5 @@
-import statusPatInfoHandler from "@stats-organization/github-readme-stats-backend/api-renamed/status/pat-info.js";
-import statusUpHandler from "@stats-organization/github-readme-stats-backend/api-renamed/status/up.js";
+import statusPatInfoHandler from "@stats-organization/github-readme-stats-backend/api/status/pat-info.js";
+import statusUpHandler from "@stats-organization/github-readme-stats-backend/api/status/up.js";
 import {
   api,
   gist,
