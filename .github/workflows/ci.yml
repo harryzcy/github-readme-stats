@@ -50,6 +50,9 @@ jobs:
       - name: Run tests
         run: pnpm run test
 
+      - name: Run benchmarks
+        run: pnpm --filter ./apps/backend/ run bench
+
   code-checks:
     name: Code checks
     runs-on: ubuntu-latest
