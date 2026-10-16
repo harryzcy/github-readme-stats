@@ -64,7 +64,7 @@ vi.mock(
 );
 
 vi.mock(
-  "@stats-organization/github-readme-stats-backend/api-renamed/status/up.js",
+  "@stats-organization/github-readme-stats-backend/api/status/up.js",
   () => ({
     default: (req: unknown, res: ResponseLike) => {
       statusUp(req, res);
@@ -73,7 +73,7 @@ vi.mock(
 );
 
 vi.mock(
-  "@stats-organization/github-readme-stats-backend/api-renamed/status/pat-info.js",
+  "@stats-organization/github-readme-stats-backend/api/status/pat-info.js",
   () => ({
     default: (req: unknown, res: ResponseLike) => {
       statusPatInfo(req, res);

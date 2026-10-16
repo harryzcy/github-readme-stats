@@ -9,6 +9,7 @@ const SINGLE_VERSION: Array<string> = [
   "axios-cache-interceptor",
   "astro",
   "@astrojs/markdown-satteri",
+  "jsdoc-type-pratt-parser",
 ];
 
 const lockfile = fs.readFileSync("pnpm-lock.yaml", "utf8").split("\n");
