@@ -79,7 +79,7 @@
     "generate-language-colors": "node scripts/generate-language-colors"
   },
   "devDependencies": {
-    "@graphql-codegen/core": "6.2.1",
+    "@graphql-codegen/core": "6.2.2",
     "@graphql-codegen/typescript": "6.1.1",
     "@graphql-codegen/typescript-operations": "6.1.10",
     "@octokit/graphql-schema": "15.26.1",
