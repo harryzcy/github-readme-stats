@@ -1,17 +1,6 @@
-# `packageManager` in package.json is deliberately held at pnpm 10.
-# Vercel does not support pnpm 11 yet, and deploying with it makes every request fail at runtime.
-# See https://github.com/stats-organization/github-stats-extended/pull/459
-#
-# Re-check Vercel's supported package managers before updating again:
-# https://vercel.com/docs/package-managers#supported-package-managers
 packages:
   - apps/*
   - packages/*
-
-onlyBuiltDependencies:
-  - "@swc/core"
-  - esbuild
-  - unrs-resolver
 
 catalog:
   "@vitest/coverage-v8": 5.0.0
@@ -30,7 +19,7 @@ overrides:
   "jsdoc-type-pratt-parser": 9.2.0
   # https://github.com/stats-organization/github-stats-extended/pull/555 explains why we didn't upgrade to graphql 17 yet.
 
-# Deliberately stricter than pnpm 11's 1440 default (7 days vs 1)
+# Deliberately stricter than pnpm's 1440 default (7 days vs 1)
 minimumReleaseAge: 10080
 
 # Reject a version with weaker publish trust evidence than an earlier one.
@@ -39,3 +28,5 @@ trustPolicy: no-downgrade
 # Fail on unmet peers and on a Node version outside `engines`, instead of warning
 strictPeerDependencies: true
 engineStrict: true
+allowBuilds:
+  unrs-resolver: true
