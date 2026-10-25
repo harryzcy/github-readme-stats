@@ -1,19 +1,6 @@
-# `packageManager` in package.json is deliberately held at pnpm 10.
-# Vercel does not support pnpm 11 yet, and deploying with it makes every request fail at runtime.
-# See https://github.com/stats-organization/github-stats-extended/pull/459
-#
-# Re-check Vercel's supported package managers before updating again:
-# https://vercel.com/docs/package-managers#supported-package-managers
 packages:
   - apps/*
   - packages/*
-
-onlyBuiltDependencies:
-  - "@swc/core"
-  - esbuild
-  - unrs-resolver
-  # Not in upstream's list: only the Cloudflare app pulls workerd in, via wrangler.
-  - workerd
 
 catalog:
   "@vitest/coverage-v8": 5.0.0
@@ -31,7 +18,7 @@ overrides:
   # pulls a second @types/node into the tree and breaks vitest (duplicate instances).
   "jsdoc-type-pratt-parser": 9.2.0
 
-# Deliberately stricter than pnpm 11's 1440 default (7 days vs 1)
+# Deliberately stricter than pnpm's 1440 default (7 days vs 1)
 minimumReleaseAge: 10080
 
 # Reject a version with weaker publish trust evidence than an earlier one.
@@ -40,3 +27,8 @@ trustPolicy: no-downgrade
 # Fail on unmet peers, instead of warning. Upstream also sets `engineStrict`,
 # which we cannot: the vendored packages pin node 24.x and we develop on 26.
 strictPeerDependencies: true
+allowBuilds:
+  unrs-resolver: true
+  # Not in upstream's list: only the Cloudflare app pulls these in, via wrangler.
+  esbuild: true
+  workerd: true
