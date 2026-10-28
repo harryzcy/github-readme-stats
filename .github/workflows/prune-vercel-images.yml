@@ -28,8 +28,8 @@ jobs:
       pull-requests: read
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_TEAM: harryzcys-projects
-      VERCEL_PROJECT: github-readme-stats
+      VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
       VCR_REPOSITORY: dockerfile
       KEEP_PRODUCTION: ${{ inputs.keep-production || vars.VERCEL_KEEP_PRODUCTION || 10 }}
       DRY_RUN: ${{ inputs.dry-run == true }}
@@ -37,12 +37,12 @@ jobs:
       - name: List images
         run: |
           api="https://api.vercel.com/v1/vcr/repository/$VCR_REPOSITORY/images"
-          query="projectId=$VERCEL_PROJECT&slug=$VERCEL_TEAM"
+          query="projectId=$VERCEL_PROJECT_ID&teamId=$VERCEL_TEAM_ID"
           cursor=""
           : > "$RUNNER_TEMP/images.jsonl"
           while :; do
-            page=$(curl -sSf -H "Authorization: Bearer $VERCEL_TOKEN" \
-              "$api?$query&limit=100${cursor:+&cursor=$(jq -rn --arg c "$cursor" '$c|@uri')}")
+            page=$(curl -sS --fail-with-body -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "$api?$query&limit=100${cursor:+&cursor=$(jq -rn --arg c "$cursor" '$c|@uri')}") || { echo "$page"; exit 1; }
             jq -c '.images[]' <<<"$page" >> "$RUNNER_TEMP/images.jsonl"
             cursor=$(jq -r '.nextCursor // empty' <<<"$page")
             [ -n "$cursor" ] || break
@@ -66,7 +66,7 @@ jobs:
       - name: Delete old images
         run: |
           api="https://api.vercel.com/v1/vcr/repository/$VCR_REPOSITORY/images"
-          query="projectId=$VERCEL_PROJECT&slug=$VERCEL_TEAM"
+          query="projectId=$VERCEL_PROJECT_ID&teamId=$VERCEL_TEAM_ID"
           jq -rs \
             --rawfile production "$RUNNER_TEMP/production.txt" \
             --rawfile prs "$RUNNER_TEMP/open-prs.txt" \
@@ -91,5 +91,5 @@ jobs:
           while read -r id tags; do
             echo "- \`$tags\` ($id)" >> "$GITHUB_STEP_SUMMARY"
             [ "$DRY_RUN" = true ] && continue
-            curl -sSf -X DELETE -H "Authorization: Bearer $VERCEL_TOKEN" "$api/$id?$query" > /dev/null
+            curl -sS --fail-with-body -X DELETE -H "Authorization: Bearer $VERCEL_TOKEN" "$api/$id?$query" > /dev/null
           done < "$RUNNER_TEMP/delete.txt"
