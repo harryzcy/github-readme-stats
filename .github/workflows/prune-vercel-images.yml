@@ -30,13 +30,6 @@ jobs:
       VCR_REPOSITORY: dockerfile
       DRY_RUN: ${{ inputs.dry-run == true }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: cloudflare
-          fetch-depth: 0
-          filter: blob:none
-
       - name: List images
         run: |
           api="https://api.vercel.com/v1/vcr/repository/$VCR_REPOSITORY/images"
@@ -51,6 +44,13 @@ jobs:
             [ -n "$cursor" ] || break
           done
           echo "$(wc -l < "$RUNNER_TEMP/images.jsonl") image(s) in the registry." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: cloudflare
+          fetch-depth: 0
+          filter: blob:none
 
       - name: Collect commits to keep
         env:
