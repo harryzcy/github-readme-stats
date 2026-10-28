@@ -9,6 +9,9 @@ on:
         description: "List the images that would be deleted without deleting them"
         type: boolean
         default: true
+      keep-production:
+        description: "Number of newest production images to keep (defaults to the VERCEL_KEEP_PRODUCTION variable, or 10)"
+        type: number
 
 concurrency:
   group: ${{ github.workflow }}
@@ -28,7 +31,7 @@ jobs:
       VERCEL_TEAM: harryzcys-projects
       VERCEL_PROJECT: github-readme-stats
       VCR_REPOSITORY: dockerfile
-      KEEP_PRODUCTION: 10
+      KEEP_PRODUCTION: ${{ inputs.keep-production || vars.VERCEL_KEEP_PRODUCTION || 10 }}
       DRY_RUN: ${{ inputs.dry-run == true }}
     steps:
       - name: List images
