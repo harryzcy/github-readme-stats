@@ -1,7 +1,5 @@
 name: Dependabot Auto-merge
 
-# Merging still waits on the required checks in the cloudflare ruleset.
-
 on:
   pull_request:
     branches:
