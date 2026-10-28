@@ -1,0 +1,95 @@
+name: Prune Vercel Images
+
+on:
+  schedule:
+    - cron: "17 * * * *"
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "List the images that would be deleted without deleting them"
+        type: boolean
+        default: true
+      keep-production:
+        description: "Number of newest production images to keep (defaults to the VERCEL_KEEP_PRODUCTION variable, or 10)"
+        type: number
+
+concurrency:
+  group: ${{ github.workflow }}
+
+permissions: {}
+
+jobs:
+  prune:
+    name: Prune images
+    runs-on: ubuntu-latest
+    if: github.repository == 'harryzcy/github-readme-stats'
+    permissions:
+      contents: read
+      pull-requests: read
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_TEAM: harryzcys-projects
+      VERCEL_PROJECT: github-readme-stats
+      VCR_REPOSITORY: dockerfile
+      KEEP_PRODUCTION: ${{ inputs.keep-production || vars.VERCEL_KEEP_PRODUCTION || 10 }}
+      DRY_RUN: ${{ inputs.dry-run == true }}
+    steps:
+      - name: List images
+        run: |
+          api="https://api.vercel.com/v1/vcr/repository/$VCR_REPOSITORY/images"
+          query="projectId=$VERCEL_PROJECT&slug=$VERCEL_TEAM"
+          cursor=""
+          : > "$RUNNER_TEMP/images.jsonl"
+          while :; do
+            page=$(curl -sSf -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "$api?$query&limit=100${cursor:+&cursor=$(jq -rn --arg c "$cursor" '$c|@uri')}")
+            jq -c '.images[]' <<<"$page" >> "$RUNNER_TEMP/images.jsonl"
+            cursor=$(jq -r '.nextCursor // empty' <<<"$page")
+            [ -n "$cursor" ] || break
+          done
+          echo "$(wc -l < "$RUNNER_TEMP/images.jsonl") image(s) in the registry." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: cloudflare
+          fetch-depth: 0
+          filter: blob:none
+
+      - name: Collect commits
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git rev-list HEAD | cut -c1-12 > "$RUNNER_TEMP/production.txt"
+          gh pr list --state open --limit 500 --json headRefOid --jq '.[].headRefOid[0:12]' > "$RUNNER_TEMP/open-prs.txt"
+
+      - name: Delete old images
+        run: |
+          api="https://api.vercel.com/v1/vcr/repository/$VCR_REPOSITORY/images"
+          query="projectId=$VERCEL_PROJECT&slug=$VERCEL_TEAM"
+          jq -rs \
+            --rawfile production "$RUNNER_TEMP/production.txt" \
+            --rawfile prs "$RUNNER_TEMP/open-prs.txt" \
+            --argjson keep "$KEEP_PRODUCTION" '
+            def set: split("\n") | map(select(. != "") | {(.): true}) | add // {};
+            ($production | set) as $p
+            | ($prs | set) as $r
+            | map(select((.tags | length) > 0 and all(.tags[]; test("^[0-9a-f]{12}$"))))
+            | (map(select(any(.tags[]; $p[.]))) | sort_by(.createdAt) | reverse | .[:$keep] | map(.id)) as $recent
+            | .[]
+            | select((.id as $id | $recent | index($id) | not) and all(.tags[]; $r[.] | not))
+            | "\(.id) \(.tags | join(","))"
+          ' "$RUNNER_TEMP/images.jsonl" > "$RUNNER_TEMP/delete.txt"
+
+          count=$(wc -l < "$RUNNER_TEMP/delete.txt")
+          if [ "$DRY_RUN" = true ]; then
+            echo "Dry run: would delete $count image(s)." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Deleting $count image(s)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          while read -r id tags; do
+            echo "- \`$tags\` ($id)" >> "$GITHUB_STEP_SUMMARY"
+            [ "$DRY_RUN" = true ] && continue
+            curl -sSf -X DELETE -H "Authorization: Bearer $VERCEL_TOKEN" "$api/$id?$query" > /dev/null
+          done < "$RUNNER_TEMP/delete.txt"
