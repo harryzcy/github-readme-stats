@@ -41,8 +41,8 @@ jobs:
           cursor=""
           : > "$RUNNER_TEMP/images.jsonl"
           while :; do
-            page=$(curl -sSf -H "Authorization: Bearer $VERCEL_TOKEN" \
-              "$api?$query&limit=100${cursor:+&cursor=$(jq -rn --arg c "$cursor" '$c|@uri')}")
+            page=$(curl -sS --fail-with-body -H "Authorization: Bearer $VERCEL_TOKEN" \
+              "$api?$query&limit=100${cursor:+&cursor=$(jq -rn --arg c "$cursor" '$c|@uri')}") || { echo "$page"; exit 1; }
             jq -c '.images[]' <<<"$page" >> "$RUNNER_TEMP/images.jsonl"
             cursor=$(jq -r '.nextCursor // empty' <<<"$page")
             [ -n "$cursor" ] || break
@@ -91,5 +91,5 @@ jobs:
           while read -r id tags; do
             echo "- \`$tags\` ($id)" >> "$GITHUB_STEP_SUMMARY"
             [ "$DRY_RUN" = true ] && continue
-            curl -sSf -X DELETE -H "Authorization: Bearer $VERCEL_TOKEN" "$api/$id?$query" > /dev/null
+            curl -sS --fail-with-body -X DELETE -H "Authorization: Bearer $VERCEL_TOKEN" "$api/$id?$query" > /dev/null
           done < "$RUNNER_TEMP/delete.txt"
