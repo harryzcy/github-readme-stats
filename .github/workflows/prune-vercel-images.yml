@@ -17,7 +17,7 @@ permissions: {}
 
 jobs:
   prune:
-    name: Prune preview images
+    name: Prune images
     runs-on: ubuntu-latest
     if: github.repository == 'harryzcy/github-readme-stats'
     permissions:
@@ -28,6 +28,7 @@ jobs:
       VERCEL_TEAM: harryzcys-projects
       VERCEL_PROJECT: github-readme-stats
       VCR_REPOSITORY: dockerfile
+      KEEP_PRODUCTION: 10
       DRY_RUN: ${{ inputs.dry-run == true }}
     steps:
       - name: List images
@@ -52,22 +53,28 @@ jobs:
           fetch-depth: 0
           filter: blob:none
 
-      - name: Collect commits to keep
+      - name: Collect commits
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          {
-            git rev-list HEAD
-            gh pr list --state open --limit 500 --json headRefOid --jq '.[].headRefOid'
-          } | cut -c1-12 | sort -u > "$RUNNER_TEMP/keep.txt"
+          git rev-list HEAD | cut -c1-12 > "$RUNNER_TEMP/production.txt"
+          gh pr list --state open --limit 500 --json headRefOid --jq '.[].headRefOid[0:12]' > "$RUNNER_TEMP/open-prs.txt"
 
-      - name: Delete preview images
+      - name: Delete old images
         run: |
           api="https://api.vercel.com/v1/vcr/repository/$VCR_REPOSITORY/images"
           query="projectId=$VERCEL_PROJECT&slug=$VERCEL_TEAM"
-          jq -r --rawfile keep "$RUNNER_TEMP/keep.txt" '
-            ($keep | split("\n") | map(select(. != "") | {(.): true}) | add) as $k
-            | select((.tags | length) > 0 and all(.tags[]; test("^[0-9a-f]{12}$") and ($k[.] | not)))
+          jq -rs \
+            --rawfile production "$RUNNER_TEMP/production.txt" \
+            --rawfile prs "$RUNNER_TEMP/open-prs.txt" \
+            --argjson keep "$KEEP_PRODUCTION" '
+            def set: split("\n") | map(select(. != "") | {(.): true}) | add // {};
+            ($production | set) as $p
+            | ($prs | set) as $r
+            | map(select((.tags | length) > 0 and all(.tags[]; test("^[0-9a-f]{12}$"))))
+            | (map(select(any(.tags[]; $p[.]))) | sort_by(.createdAt) | reverse | .[:$keep] | map(.id)) as $recent
+            | .[]
+            | select((.id as $id | $recent | index($id) | not) and all(.tags[]; $r[.] | not))
             | "\(.id) \(.tags | join(","))"
           ' "$RUNNER_TEMP/images.jsonl" > "$RUNNER_TEMP/delete.txt"
 
