@@ -7,6 +7,7 @@ export default defineConfig({
       "apps/backend/vitest.config.ts",
       "apps/cloudflare/vitest.config.ts",
       "apps/frontend/vitest.config.ts",
+      "apps/isr-proxy/vitest.config.ts",
     ],
   },
 });
