@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { calculateRank } from "../src/calculateRank.js";
 import { loadConfigFromEnv } from "../src/common/config.js";
+import { isBrowser } from "../src/common/env.js";
 import type { GraphQLResponse } from "../src/common/http.js";
 import { fetchStats } from "../src/fetchers/stats.js";
 import type { StatsData } from "../src/fetchers/types.js";
@@ -19,6 +20,10 @@ vi.mock(import("../src/common/log.js"), async () => {
   const { createLoggerMock } = await import("./utils.js");
   return createLoggerMock();
 });
+
+vi.mock(import("../src/common/env.js"), () => ({
+  isBrowser: vi.fn(() => false),
+}));
 
 /** Body of a GraphQL response, as the mocked endpoint returns it. */
 type GraphQLBody<TResult> = GraphQLResponse<TResult>["data"];
@@ -390,11 +395,31 @@ describe("Test fetchStats", () => {
     );
   });
 
-  it("should throw specific error when include_all_commits true and invalid username", async () => {
-    await expect(fetchStats("asdf///---", true)).rejects.toThrow(
-      "Invalid username provided.",
-    );
-  });
+  it.each(["Foo-", "-", "-foo", "x--", "A--A"])(
+    "should fetch total commits for unusual but valid username %s",
+    async (username) => {
+      nock("https://api.github.com")
+        .get(`/search/commits?per_page=1&q=author:${username}`)
+        .reply(200, { total_count: 1000 });
+
+      const stats = await fetchStats(username, true);
+      expect(stats).toStrictEqual(
+        expectedStats(
+          { totalCommits: 1000 },
+          { all_commits: true, commits: 1000 },
+        ),
+      );
+    },
+  );
+
+  it.each(["asdf///---", "foo_bar", "a".repeat(40)])(
+    "should throw specific error when include_all_commits true and invalid username %s",
+    async (username) => {
+      await expect(fetchStats(username, true)).rejects.toThrow(
+        "Invalid username provided.",
+      );
+    },
+  );
 
   it("should throw specific error when include_all_commits true and API returns error", async () => {
     nock("https://api.github.com")
@@ -698,12 +723,13 @@ describe("Test fetchStats", () => {
    * like GitHub does when a query is too big.
    *
    * @param maxRanges Maximum number of accepted ranges.
-   * @param rejection Axios response tuple `[status, body]` returned when the limit is exceeded.
+   * @param rejection Axios response tuple `[status, body]` returned when the limit is exceeded,
+   *        or an error to fail the request without a response.
    * @returns Range counts of all contributed-to requests, in order; filled as they arrive.
    */
   const mockRangeLimit = (
     maxRanges: number,
-    rejection: [number, unknown],
+    rejection: [number, unknown] | Error,
   ): Array<number> => {
     const allRangeCounts: Array<number> = [];
 
@@ -719,6 +745,9 @@ describe("Test fetchStats", () => {
         const rangeCount = (req.query.match(/range_\d+:/g) ?? []).length;
         allRangeCounts.push(rangeCount);
         if (rangeCount > maxRanges) {
+          if (rejection instanceof Error) {
+            throw rejection;
+          }
           return rejection;
         }
 
@@ -777,6 +806,68 @@ describe("Test fetchStats", () => {
       expect(rangeCounts.at(-1)).toBe(1);
     },
   );
+
+  it("should retry the same ranges on network error on the server, then rethrow", async () => {
+    vi.useFakeTimers();
+    try {
+      const rangeCounts = mockRangeLimit(2, new Error("Network Error"));
+
+      const result = fetchStatsWith({ include_all_time_contribs: true });
+      const assertion = expect(result).rejects.toThrow("Network Error");
+      await vi.runAllTimersAsync();
+      await assertion;
+
+      // the request is retried 3 times without splitting
+      expect(rangeCounts).toEqual([9, 9, 9, 9]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  // in browsers, GitHub's timeout responses lack CORS headers and surface as network errors
+  describe("in the browser", () => {
+    beforeEach(() => {
+      vi.mocked(isBrowser).mockReturnValue(true);
+    });
+
+    afterEach(() => {
+      vi.mocked(isBrowser).mockReturnValue(false);
+    });
+
+    it("should halve ranges on network error without response and raise again on success", async () => {
+      vi.useFakeTimers();
+      try {
+        const rangeCounts = mockRangeLimit(2, new Error("Network Error"));
+
+        // timers are never advanced, so this only settles if no retry delay is awaited
+        const stats = await fetchStatsWith({ include_all_time_contribs: true });
+
+        expect(stats.allTimeContributedTo).toBe(2);
+        expect(rangeCounts).toEqual([9, 4, 2, 3, 1, 2, 3, 1, 2, 1]);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it("should retry a single range on network error, then throw", async () => {
+      vi.useFakeTimers();
+      try {
+        const rangeCounts = mockRangeLimit(0, new Error("Network Error"));
+
+        const result = fetchStatsWith({ include_all_time_contribs: true });
+        const assertion = expect(result).rejects.toThrow(
+          "Something went wrong while trying to retrieve the repository contributions data using the GraphQL API.",
+        );
+        await vi.runAllTimersAsync();
+        await assertion;
+
+        // 9 → 4 → 2 → 1 ranges, then the single range is retried 3 times
+        expect(rangeCounts).toEqual([9, 4, 2, 1, 1, 1, 1]);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
 
   it("should retry on empty contributed-to response and succeed within retry limit", async () => {
     let contributedToCallCount = 0;
