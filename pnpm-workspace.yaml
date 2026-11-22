@@ -9,11 +9,6 @@ catalog:
   nock: 15.0.6
   vitest: 5.0.0
 
-overrides:
-  # jsdoc-type-pratt-parser 9.2.1+ adds a hard dependency on @types/node@^26, which
-  # pulls a second @types/node into the tree and breaks vitest (duplicate instances).
-  "jsdoc-type-pratt-parser": 9.2.0
-
 # Deliberately stricter than pnpm's 1440 default (7 days vs 1)
 minimumReleaseAge: 10080
 
