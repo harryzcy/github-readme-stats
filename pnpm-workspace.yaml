@@ -10,10 +10,6 @@ catalog:
   vitest: 5.0.0
 
 overrides:
-  # @tailwindcss/node pins lightningcss exactly while vite floats on ^1.32.0, so a cold re-resolve installs both.
-  # Updates against the existing lockfile keep 1.32.0 either way, so this only guards re-resolution.
-  # Enforced by scripts/assert-deduped.ts; drop it there too once @tailwindcss/node pins a version vite also resolves to.
-  "vite>lightningcss": 1.32.0
   # jsdoc-type-pratt-parser 9.2.1+ adds a hard dependency on @types/node@^26, which
   # pulls a second @types/node into the tree and breaks vitest (duplicate instances).
   "jsdoc-type-pratt-parser": 9.2.0
