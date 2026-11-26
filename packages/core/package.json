@@ -84,7 +84,7 @@
     "@graphql-codegen/typescript-operations": "6.2.0",
     "@octokit/graphql-schema": "15.26.1",
     "@testing-library/dom": "10.4.2",
-    "@testing-library/jest-dom": "7.0.1",
+    "@testing-library/jest-dom": "8.0.0",
     "@uppercod/css-to-object": "1.1.1",
     "graphql": "17.0.2",
     "js-yaml": "5.5.0",
